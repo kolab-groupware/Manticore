@@ -3,7 +3,7 @@
 angular.module('manticoreApp')
     .controller('ImportCtrl', function ($scope, FileUploader) {
         var uploader = new FileUploader({
-            url: '/import',
+            url: '/upload',
             removeAfterUpload: true,
             autoUpload: true
         });
