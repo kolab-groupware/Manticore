@@ -1,0 +1,55 @@
+.import-box
+    width 400px
+    .row
+        margin: 0
+
+.upload-widget
+    margin-left 5px !important
+    margin-right 5px !important
+
+.upload-button
+    width 100%
+    position relative
+    overflow hidden
+    padding 20px
+    border 2px dashed lightgray
+    border-radius 5px
+    cursor pointer
+    text-align center
+    background-color #eee
+    input[type=file]
+        opacity 0;
+        position absolute
+        top 0
+        bottom 0
+        outline none
+        cursor inherit
+        display block
+        width 100%
+        height: 100%
+
+    &:hover
+        border 2px dashed red
+        background-color #ddd
+
+td .progress
+    margin-bottom 0
+
+.progress-overall progress
+    padding-left 8px
+    padding-right 8px
+
+th, td
+    border-bottom-width 1px !important
+
+.table .actions
+    display none
+.status
+    display none
+
+.name-cell
+    max-width 0
+    word-wrap break-word
+    text-overflow ellipsis
+    overflow hidden
+    white-space nowrap

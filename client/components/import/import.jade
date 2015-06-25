@@ -1,0 +1,79 @@
+div.import-box(ng-controller='ImportCtrl')
+    .row.upload-widget
+        div.upload-button(
+            type='button'
+            nv-file-over=''
+            uploader='uploader'
+        )
+            input(
+                type='file'
+                nv-file-select=''
+                uploader='uploader'
+                multiple
+                )
+            | Click to select files to upload, or drag them here
+            
+    .row(ng-hide='!uploader.getNotUploadedItems().length')
+        table.table
+            thead
+                tr
+                    th(width='50%') Name
+                    th(ng-show='uploader.isHTML5') Size
+                    th(ng-show='uploader.isHTML5') Progress
+                    th.status Status
+                    th.actions Actions
+            tbody
+                tr(ng-repeat='item in uploader.queue')
+                    td.name-cell
+                        span(tooltip='{{item.file.name}}' data-container='body')
+                            | {{item.file.name}}
+                    td(ng-show='uploader.isHTML5' nowrap)
+                        | {{item.file.size/1024/1024|number:2}} MB
+                    td(ng-show='uploader.isHTML5')
+                        progressbar(value='item.progress') {{item.progress}}%
+                    td.status.text-center
+                        span(ng-show='item.isSuccess')
+                            i.glyphicon.glyphicon-ok
+                        span(ng-show='item.isCancel')
+                            i.glyphicon.glyphicon-ban-circle
+                        span(ng-show='item.isError')
+                            i.glyphicon.glyphicon-remove
+                    td.actions(nowrap)
+                        button.btn.btn-success.btn-xs(
+                            ng-click='item.upload()'
+                            ng-disabled='item.isReady || item.isUploading || item.isSuccess'
+                            )
+                            i.glyphicon.glyphicon-upload
+                        button.btn.btn-warning.btn-xs(
+                            ng-click='item.cancel()'
+                            ng-disabled='!item.isUploading'
+                            )
+                            i.glyphicon.glyphicon-ban-circle
+                        button.btn.btn-danger.btn-xs(
+                            ng-click='item.remove()'
+                            )
+                            i.glyphicon.glyphicon-trash
+        //- div.progress-overall
+            progressbar(value='uploader.progress') {{uploader.progress}}%
+            div.btn-group.btn-group-justified
+                div.btn.btn-success.btn-s(
+                    type='button'
+                    ng-click='uploader.uploadAll()'
+                    ng-disabled='!uploader.getNotUploadedItems().length'
+                    )
+                    span.glyphicon.glyphicon-upload
+                    |  Upload all
+                div.btn.btn-warning.btn-s(
+                    type='button'
+                    ng-click='uploader.cancelAll()'
+                    ng-disabled='!uploader.isUploading'
+                    )
+                    span.glyphicon.glyphicon-ban-circle
+                    |  Cancel all
+                div.btn.btn-danger.btn-s(
+                    type='button'
+                    ng-click='uploader.removeAll()'
+                    ng-disabled='!uploader.queue.length'
+                    )
+                    span.glyphicon.glyphicon-trash
+                    |  Remove all
