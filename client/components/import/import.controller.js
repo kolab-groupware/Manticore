@@ -3,7 +3,7 @@
 angular.module('manticoreApp')
     .controller('ImportCtrl', function ($scope, FileUploader, Auth) {
         var uploader = new FileUploader({
-            url: '/upload',
+            url: '/api/documents/upload',
             removeAfterUpload: true,
             autoUpload: true,
             headers: {
