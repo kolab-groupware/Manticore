@@ -9,14 +9,6 @@ angular.module('manticoreApp')
       $scope.documents = documents;
     });
 
-    $scope.addDocument = function() {
-      if($scope.newDocument === '') {
-        return;
-      }
-      $http.post('/api/documents', { name: $scope.newDocument });
-      $scope.newDocument = '';
-    };
-
     $scope.deleteDocument = function(document) {
       $http.delete('/api/documents/' + document._id);
     };
