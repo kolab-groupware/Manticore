@@ -10,7 +10,7 @@
 'use strict';
 
 var _ = require('lodash');
-var Document = require('./document.model');
+var Document = require('./document.model').Document;
 
 // Get list of documents
 exports.index = function(req, res) {

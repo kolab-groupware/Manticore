@@ -5,22 +5,13 @@
 
 'use strict';
 
-var Document = require('../api/document/document.model');
+var Document = require('../api/document/document.model').Document;
+var DocumentChunk = require('../api/document/document.model').DocumentChunk;
 var User = require('../api/user/user.model');
 
-Document.find({}).remove(function() {
-  Document.create({
-    name: 'Trip Budget'
-  }, {
-    name: 'Vacation Spots'
-  }, {
-    name: 'Voucher Codes'
-  },  {
-    name: 'Backpacks'
-  }, function () {
-      console.log('finished populating documents')
-    }
-  );
+DocumentChunk.find({}).remove(function() {
+    Document.find({}).remove(function() {
+    });
 });
 
 User.find({}).remove(function() {
