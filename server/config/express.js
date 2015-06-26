@@ -35,7 +35,7 @@ module.exports = function(app) {
   }
 
   if ('development' === env || 'test' === env) {
-    app.use(require('connect-livereload')());
+    app.use(require('connect-livereload')({ignore: ['/api']}));
     app.use(express.static(path.join(config.root, '.tmp')));
     app.use(express.static(path.join(config.root, 'client')));
     app.set('appPath', 'client');

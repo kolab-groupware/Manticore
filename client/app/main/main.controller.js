@@ -9,6 +9,15 @@ angular.module('manticoreApp')
       $scope.documents = documents;
     });
 
+    $scope.openDocument = function (document) {
+      $http.get('/api/documents/snapshot/' + _.last(document.chunks))
+      .success(function (data) {
+          
+      }).error(function (data) {
+          console.log(data);
+      })
+    };
+
     $scope.deleteDocument = function(document) {
       $http.delete('/api/documents/' + document._id);
     };

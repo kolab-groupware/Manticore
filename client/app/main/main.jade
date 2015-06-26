@@ -10,9 +10,9 @@ header#banner.hero-unit(ng-hide='isLoggedIn()       ')
   .row
     .col-lg-12
       h1.page-header Documents
-      ul.nav.nav-tabs.nav-stacked.col-md-4.col-lg-4.col-sm-6(ng-repeat='document in documents')
+      ul.col-md-4.col-lg-4.col-sm-6(ng-repeat='document in documents')
         li
-          a(href='#', tooltip='{{document.info}}')
+          a(ui-sref='editor({id: document._id})')
             | {{document.title}}
 
 //- footer.footer

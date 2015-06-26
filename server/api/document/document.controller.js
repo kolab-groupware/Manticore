@@ -44,14 +44,18 @@ exports.upload = function (req, res, next) {
             files: 5
         },
         onFileUploadStart: function (file) {
-            var firstChunk = new DocumentChunk();
+            var chunkId = new mongoose.Types.ObjectId();
+
+            var firstChunk = new DocumentChunk({
+                _id: chunkId
+            });
             var newDocument = new Document({
                 title: file.originalname,
                 creator: req.user._id,
-                chunks: [firstChunk._id]
+                chunks: [chunkId]
             });
             this.upload = gfs.createWriteStream({
-                _id: mongoose.Types.ObjectId(firstChunk._id),
+                _id: chunkId,
                 filename: file.originalname,
                 mode: 'w',
                 chunkSize: 1024 * 4,
@@ -79,11 +83,22 @@ exports.acknowledgeUpload = function (req, res) {
     return res.send(200);
 };
 
-exports.showFile = function(req, res) {
-    Document.findById(req.params.id, function (err, document) {
+exports.showSnapshot = function(req, res) {
+    var snapshotId = req.params.id;
+
+    gfs.findOne({_id: snapshotId}, function (err, file) {
         if (err) { return handleError(res, err); }
-        if (!document) { return res.send(404); }
-        DocumentChunks.findById(document.chunks[document.chunks.length - 1]);
+        if (!file) { return res.send(404); }
+
+        var download = gfs.createReadStream({
+            _id: snapshotId
+        });
+        download.on('error', function (err) {
+            return handleError(res, err);
+        });
+        res.set('Content-Type', file.contentType);
+        res.attachment(file.filename)
+        download.pipe(res);
     });
 };
 
