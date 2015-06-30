@@ -4,8 +4,6 @@
 
 angular.module('manticoreApp')
 .controller('WodoCtrl', function ($scope, Auth, Adaptor) {
-    $scope.message = 'Hello';
-
     var editorInstance,
         clientAdaptor,
         editorOptions = {
@@ -13,10 +11,11 @@ angular.module('manticoreApp')
         },
         onConnectCalled = false;
 
-    function closeEditing() {
+    function closeEditing(cb) {
         editorInstance.leaveSession(function () {
             clientAdaptor.leaveSession(function () {
                 console.log('Closed editing, left session.');
+                cb();
             });
         });
     }
@@ -38,35 +37,48 @@ angular.module('manticoreApp')
 
     function boot() {
         clientAdaptor = new Adaptor(
-        $scope.document.id,
-        '/api/documents/snapshot/' + _.last($scope.document.chunks),
-        Auth.getToken(),
-        function onConnect() {
-            console.log('onConnect');
-            if (onConnectCalled) {
-                console.log('Reconnecting not yet supported');
-                return;
-            }
-            onConnectCalled = true;
-
-            clientAdaptor.joinSession(function (memberId) {
-                if (!memberId) {
-                    console.log('Could not join; memberId not received');
-                } else {
-                    console.log('Joined with memberId ' + memberId);
-                    openEditor();
+            $scope.document.id,
+            '/api/documents/snapshot/' + _.last($scope.document.chunks),
+            Auth.getToken(),
+            function onConnect() {
+                console.log('onConnect');
+                if (onConnectCalled) {
+                    console.log('Reconnecting not yet supported');
+                    return;
                 }
-            });
-        },
-        function onKick() {
-            console.log('onKick');
-            closeEditing();
-        },
-        function onDisconnect() {
-            console.log('onDisconnect');
-        }
+                onConnectCalled = true;
+
+                clientAdaptor.joinSession(function (memberId) {
+                    if (!memberId) {
+                        console.log('Could not join; memberId not received');
+                    } else {
+                        console.log('Joined with memberId ' + memberId);
+                        openEditor();
+                    }
+                });
+            },
+            function onKick() {
+                console.log('onKick');
+                closeEditing();
+            },
+            function onDisconnect() {
+                console.log('onDisconnect');
+            }
         );
     }
 
+    function destroy (cb) {
+        if (editorInstance) {
+            closeEditing(cb);
+        } else {
+            if (clientAdaptor) {
+                clientAdaptor.leaveSession();
+                clientAdaptor.destroy();
+                cb();
+            }
+        }
+    }
+
     this.boot = boot;
+    this.destroy = destroy;
 });

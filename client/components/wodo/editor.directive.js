@@ -12,6 +12,10 @@ angular.module('manticoreApp')
             var usedLocale = 'C';
             var wodoPrefix = '/bower_components/wodo/wodo';
 
+            var head = document.getElementsByTagName('head')[0],
+                frag = document.createDocumentFragment();
+
+
             if (navigator && navigator.language.match(/^(de)/)) {
               usedLocale = navigator.language.substr(0, 2);
             }
@@ -28,10 +32,8 @@ angular.module('manticoreApp')
             };
 
             function loadDependencies(callback) {
-                var head = document.getElementsByTagName('head')[0],
-                    frag = document.createDocumentFragment(),
-                    link,
-                    script;
+
+                var link, script;
 
                 // append two link and two script elements to the header
                 link = document.createElement('link');
@@ -67,12 +69,27 @@ angular.module('manticoreApp')
                 script.onload = callback;
 
                 frag.appendChild(script);
+                _.each(frag.children, function (el) {
+                    el.setAttribute('wodo', true);
+                });
                 head.appendChild(frag);
+            }
+
+            function cleanUp() {
+                wodoCtrl.destroy(function () {
+                    _.each(head.children, function (el) {
+                        if (el && el.hasAttribute('wodo')) {
+                            head.removeChild(el);
+                        }
+                    });
+                });
             }
 
             loadDependencies(function () {
                 wodoCtrl.boot();
             });
+
+            scope.$on('$destroy', cleanUp);
         }
     };
 });

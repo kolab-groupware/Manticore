@@ -5,9 +5,6 @@
 
 angular.module('manticoreApp')
 .factory('Adaptor', function () {
-    return (function() {
-        'use strict';
-
     var OperationRouter = function (socket, odfContainer, errorCb) {
         var EVENT_BEFORESAVETOFILE = 'beforeSaveToFile',
             EVENT_SAVEDTOFILE = 'savedToFile',
@@ -228,7 +225,8 @@ angular.module('manticoreApp')
     };
 
     var ClientAdaptor = function (documentId, documentURL, authToken, connectedCb, kickedCb, disconnectedCb) {
-        var memberId,
+        var self = this,
+            memberId,
             socket;
 
         this.getMemberId = function () {
@@ -265,9 +263,14 @@ angular.module('manticoreApp')
             return socket;
         };
 
+        this.destroy = function () {
+            socket.disconnect();
+        };
+
         function init() {
             socket = io('', {
-                query: 'token=' + authToken
+                query: 'token=' + authToken,
+                forceNew: true
             });
             socket.on('connect', connectedCb);
             socket.on('kick', kickedCb);
@@ -277,6 +280,4 @@ angular.module('manticoreApp')
     };
 
     return ClientAdaptor;
-
-    }());
 });
