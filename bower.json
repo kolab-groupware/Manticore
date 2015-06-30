@@ -14,7 +14,8 @@
     "font-awesome": ">=4.1.0",
     "lodash": "3.9.3",
     "angular-ui-router": "0.2.15",
-    "angular-file-upload": "1.1.5"
+    "angular-file-upload": "1.1.5",
+    "wodo": "http://webodf.org/download/wodocollabtexteditor-0.5.8.preview1.zip" 
   },
   "devDependencies": {
     "angular-mocks": "1.4.1",

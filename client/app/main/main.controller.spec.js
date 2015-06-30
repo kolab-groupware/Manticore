@@ -20,9 +20,4 @@ describe('Controller: MainCtrl', function () {
       $scope: scope
     });
   }));
-
-  it('should attach a list of documents to the scope', function () {
-    $httpBackend.flush();
-    expect(scope.documents.length).toBe(4);
-  });
 });

@@ -1,0 +1,72 @@
+'use strict';
+
+/*global Wodo*/
+
+angular.module('manticoreApp')
+.controller('WodoCtrl', function ($scope, Auth, Adaptor) {
+    $scope.message = 'Hello';
+
+    var editorInstance,
+        clientAdaptor,
+        editorOptions = {
+            collabEditingEnabled: true
+        },
+        onConnectCalled = false;
+
+    function closeEditing() {
+        editorInstance.leaveSession(function () {
+            clientAdaptor.leaveSession(function () {
+                console.log('Closed editing, left session.');
+            });
+        });
+    }
+
+    function handleEditingError(error) {
+        alert('Something went wrong!\n' + error);
+        console.log(error);
+        closeEditing();
+    }
+
+    function openEditor() {
+        Wodo.createCollabTextEditor('wodoContainer', editorOptions, function (err, editor) {
+            editorInstance = editor;
+
+            editorInstance.addEventListener(Wodo.EVENT_UNKNOWNERROR, handleEditingError);
+            editorInstance.joinSession(clientAdaptor, function () {});
+        });
+    }
+
+    function boot() {
+        clientAdaptor = new Adaptor(
+        $scope.document.id,
+        '/api/documents/snapshot/' + _.last($scope.document.chunks),
+        Auth.getToken(),
+        function onConnect() {
+            console.log('onConnect');
+            if (onConnectCalled) {
+                console.log('Reconnecting not yet supported');
+                return;
+            }
+            onConnectCalled = true;
+
+            clientAdaptor.joinSession(function (memberId) {
+                if (!memberId) {
+                    console.log('Could not join; memberId not received');
+                } else {
+                    console.log('Joined with memberId ' + memberId);
+                    openEditor();
+                }
+            });
+        },
+        function onKick() {
+            console.log('onKick');
+            closeEditing();
+        },
+        function onDisconnect() {
+            console.log('onDisconnect');
+        }
+        );
+    }
+
+    this.boot = boot;
+});
