@@ -13,7 +13,13 @@ Realtime collaboration for rich office documents.
 
 ## Run
 
-Executing `grunt serve` runs the node server which listens at `localhost:9000`.
+### For frontend development  
+`grunt serve`  
+Runs the node server which listens at `localhost:9000`. This doesn't gracefully shut down the server due to [grunt-express-server](https://github.com/ericclemmons/grunt-express-server) eating the relevant signals. So you'll need to manually kill the node process, till there is a better solution.
+
+### For backend development
+`node server/app.js`  
+Does the same as the `grunt serve`, except that you don't get live-reloading when you change some code. Gracefully persists objects and disconnects clients and the DB when you `SIGTERM` or `SIGINT` it (just do <kbd>Ctrl+C</kbd>).
 
 ## Configure
 
