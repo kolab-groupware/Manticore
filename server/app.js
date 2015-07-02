@@ -27,10 +27,18 @@ var socketio = require('socket.io')(server, {
 });
 var adaptor;
 var objectCache;
+var sockets = [];
 
 require('./config/socketio')(socketio);
 require('./config/express')(app);
 require('./routes')(app);
+
+server.on('connection', function (socket) {
+    sockets.push(socket);
+    socket.on('close', function () {
+        sockets.splice(sockets.indexOf(socket), 1);
+    });
+});
 
 // Start server
 server.listen(config.port, config.ip, function () {
@@ -38,6 +46,29 @@ server.listen(config.port, config.ip, function () {
   objectCache = new ObjectCache();
   adaptor = new Adaptor(socketio, objectCache);
 });
+
+function destroy() {
+    adaptor.destroy(function () {
+        console.log('All realtime clients disconnected.');
+        objectCache.destroy(function () {
+            console.log('All objects persisted to DB.');
+            sockets.forEach(function (socket) {
+                socket.destroy();
+            });
+            server.close(function () {
+                console.log('HTTP server shut down.');
+                mongoose.disconnect(function () {
+                    console.log('DB connection closed.');
+                    console.log('Everything successfully shut down. Bye!');
+                    process.exit();
+                });
+            });
+        });
+    });
+}
+
+process.on("SIGTERM", destroy);
+process.on("SIGINT", destroy);
 
 // Expose app
 exports = module.exports = app;
