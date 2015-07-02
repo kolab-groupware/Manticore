@@ -23,6 +23,7 @@
 
 var async = require("async");
 var _ = require("lodash");
+var RColor = require('../colors');
 var DocumentChunk  = require("../../api/document/document.model").DocumentChunk;
 
 var Room = function (doc, objectCache, cb) {
@@ -30,6 +31,8 @@ var Room = function (doc, objectCache, cb) {
         chunk,
         hasCursor = {},
         sockets = [],
+        userColorMap = {},
+        randomColor = new RColor(),
         serverSeq = 0;
 
     function trackTitle(ops) {
@@ -174,9 +177,15 @@ var Room = function (doc, objectCache, cb) {
     function addMember(user, cb) {
         var memberId,
             op,
-            timestamp = Date.now();
+            timestamp = Date.now(),
+            color = userColorMap[user._id];
 
         memberId = user.name + "_" + timestamp.toString();
+        // Let user colors persist in a Room even after they've
+        // left and joined.
+        if (!color) {
+            userColorMap[user._id] = color = randomColor.get(true, 0.7);
+        }
 
         op = {
             optype: "AddMember",
@@ -184,7 +193,7 @@ var Room = function (doc, objectCache, cb) {
             timestamp: timestamp,
             setProperties: {
                 fullName: user.name,
-                color: "red"
+                color: color
             }
         };
         writeOpsToDocument([op], function () {
