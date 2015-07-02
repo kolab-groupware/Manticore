@@ -48,6 +48,12 @@ angular.module('manticoreApp')
                 link.type = 'text/css';
                 link.async = false;
                 frag.appendChild(link);
+                link = document.createElement('link');
+                link.rel = 'stylesheet';
+                link.href = wodoPrefix + '/wodotexteditor.css';
+                link.type = 'text/css';
+                link.async = false;
+                frag.appendChild(link);
                 script = document.createElement('script');
                 script.src = wodoPrefix + '/dojo-amalgamation.js';
                 script['data-dojo-config'] = 'async: true';

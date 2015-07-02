@@ -5,9 +5,13 @@ angular.module('manticoreApp')
     $stateProvider
       .state('editor', {
         url: '/document/:id',
+        reload: true,
         resolve: {
             document: function ($stateParams, $http) {
-                return $http.get('/api/documents/' + $stateParams.id);
+                return $http.get('/api/documents/' + $stateParams.id)
+                .then(function(response) {
+                    return response.data;
+                });
             }
         },
         templateUrl: 'app/editor/editor.html',

@@ -7,15 +7,15 @@ angular.module('manticoreApp')
     var editorInstance,
         clientAdaptor,
         editorOptions = {
-            collabEditingEnabled: true
+            collabEditingEnabled: true,
+            allFeaturesEnabled: true
         },
         onConnectCalled = false;
 
-    function closeEditing(cb) {
+    function closeEditing() {
         editorInstance.leaveSession(function () {
             clientAdaptor.leaveSession(function () {
                 console.log('Closed editing, left session.');
-                cb();
             });
         });
     }
@@ -37,7 +37,7 @@ angular.module('manticoreApp')
 
     function boot() {
         clientAdaptor = new Adaptor(
-            $scope.document.id,
+            $scope.document._id,
             '/api/documents/snapshot/' + _.last($scope.document.chunks),
             Auth.getToken(),
             function onConnect() {
@@ -69,7 +69,8 @@ angular.module('manticoreApp')
 
     function destroy (cb) {
         if (editorInstance) {
-            closeEditing(cb);
+            closeEditing();
+            editorInstance.destroy(cb);
         } else {
             if (clientAdaptor) {
                 clientAdaptor.leaveSession();

@@ -19,5 +19,5 @@ module.exports = function (socketio) {
   socketio.use(require('socketio-jwt').authorize({
     secret: config.secrets.session,
     handshake: true
-  }));  
+  }));
 };

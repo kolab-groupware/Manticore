@@ -268,7 +268,7 @@ angular.module('manticoreApp')
         };
 
         function init() {
-            socket = io('', {
+            socket = io({
                 query: 'token=' + authToken,
                 forceNew: true
             });
