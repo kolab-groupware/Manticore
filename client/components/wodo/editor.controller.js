@@ -14,6 +14,9 @@ angular.module('manticoreApp')
 
     function closeEditing() {
         editorInstance.leaveSession(function () {
+            $scope.$apply(function () {
+                $scope.joined = false;
+            });
             clientAdaptor.leaveSession(function () {
                 console.log('Closed editing, left session.');
             });
@@ -29,9 +32,13 @@ angular.module('manticoreApp')
     function openEditor() {
         Wodo.createCollabTextEditor('wodoContainer', editorOptions, function (err, editor) {
             editorInstance = editor;
-
+            $scope.editor = editor;
             editorInstance.addEventListener(Wodo.EVENT_UNKNOWNERROR, handleEditingError);
-            editorInstance.joinSession(clientAdaptor, function () {});
+            editorInstance.joinSession(clientAdaptor, function () {
+                $scope.$apply(function () {
+                    $scope.joined = true;
+                });
+            });
         });
     }
 

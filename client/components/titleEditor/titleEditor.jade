@@ -1,0 +1,7 @@
+span.title-container
+    input.title-editor(
+        ng-model='title'
+        ng-disabled='!joined'
+        ng-blur='changeTitle()'
+        ng-keypress='handleEnterKey($event)'
+        placeholder='Untitled Document')
