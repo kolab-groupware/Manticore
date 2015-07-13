@@ -227,7 +227,7 @@ angular.module('manticoreApp')
     var ClientAdaptor = function (documentId, authToken, connectedCb, kickedCb, disconnectedCb) {
         var self = this,
             memberId,
-            documentUrl,
+            genesisUrl,
             socket;
 
         this.getMemberId = function () {
@@ -235,7 +235,7 @@ angular.module('manticoreApp')
         };
 
         this.getGenesisUrl = function () {
-            return documentUrl;
+            return genesisUrl;
         };
 
         this.createOperationRouter = function (odfContainer, errorCb) {
@@ -247,7 +247,7 @@ angular.module('manticoreApp')
             socket.on('join_success', function handleJoinSuccess(data) {
                 socket.removeListener('join_success', handleJoinSuccess);
                 memberId = data.memberId;
-                documentUrl = '/api/documents/snapshot/' + data.snapshotId;
+                genesisUrl = data.genesisUrl;
                 cb(memberId);
             });
             socket.emit('join', {

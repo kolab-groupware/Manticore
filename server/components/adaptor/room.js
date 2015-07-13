@@ -25,10 +25,12 @@ var async = require("async");
 var _ = require("lodash");
 var RColor = require('../colors');
 var DocumentChunk  = require("../../api/document/document.model").DocumentChunk;
+var Recorder = require('./recorder');
 
-var Room = function (doc, objectCache, cb) {
+var Room = function (app, doc, objectCache, cb) {
     var document,
         chunk,
+        recorder,
         hasCursor = {},
         sockets = [],
         userColorMap = {},
@@ -138,10 +140,10 @@ var Room = function (doc, objectCache, cb) {
         });
     }
 
-    function replayOpsToMember(socket) {
+    function setupMemberSnapshot(socket, operations, genesisSeq) {
         socket.emit("replay", {
             head: serverSeq,
-            ops: chunk.operations
+            ops: operations.concat(getOpsAfter(genesisSeq))
         });
     }
 
@@ -150,7 +152,7 @@ var Room = function (doc, objectCache, cb) {
             return;
         }
         sockets.forEach(function (peerSocket) {
-            if (peerSocket !== socket) {
+            if (peerSocket.memberId !== socket.memberId) {
                 sendOpsToMember(peerSocket, ops);
             }
         });
@@ -161,17 +163,19 @@ var Room = function (doc, objectCache, cb) {
             cb();
         }
 
-        trackTitle(ops);
-        trackEditors();
+        recorder.push(ops, function () {
+            trackTitle(ops);
+            trackEditors();
 
-        // Update op stack
-        chunk.operations = chunk.operations.concat(ops);
-        serverSeq = chunk.operations.length;
+            // Update op stack
+            chunk.operations = chunk.operations.concat(ops);
+            serverSeq = chunk.operations.length;
 
-        // Update modified date
-        document.date = new Date();
+            // Update modified date
+            document.date = new Date();
 
-        cb();
+            cb();
+        });
     }
 
     function addMember(user, cb) {
@@ -236,60 +240,85 @@ var Room = function (doc, objectCache, cb) {
         addMember(socket.user, function (memberId, ops) {
             socket.memberId = memberId;
             sockets.push(socket);
-
             broadcastOpsByMember(socket, ops);
 
-            socket.emit("join_success", {
-                memberId: memberId,
-                snapshotId: chunk.fileId
-            });
-            // Service replay requests
-            socket.on("replay", function () {
-                replayOpsToMember(socket);
-            });
-            // Store, analyze, and broadcast incoming commits
-            socket.on("commit_ops", function (data, cb) {
-                var clientSeq = data.head,
-                    ops = data.ops;
-                if (clientSeq === serverSeq) {
-                    writeOpsToDocument(ops, function () {
-                        cb({
-                            conflict: false,
-                            head: serverSeq
-                        });
-                        trackCursors(ops);
-                        broadcastOpsByMember(socket, data.ops);
-                    });
-                } else {
-                    cb({
-                        conflict: true
-                    });
-                }
-            });
+            // Generate genesis URL with the latest document version's snapshot
+            // We use a two-time URL because WebODF makes two identical GET requests (!)
+            var genesisUrl = '/genesis/' + Date.now().toString(),
+                genesisSeq = serverSeq,
+                usages = 0;
 
-            // Service various requests
-            socket.on("access_get", function (data, cb) {
-                cb({
-                    access: document.isPublic ? "public" : "normal"
-                });
-            });
-
-            if (socket.user.identity !== "guest") {
-                socket.on("access_change", function (data) {
-                    document.isPublic = data.access === "public";
-                    broadcastMessage("access_changed", {
-                        access: data.access === "public" ? "public" : "normal"
-                    });
-                    if (data.access !== "public") {
-                        sockets.forEach(function (peerSocket) {
-                            if (peerSocket.user.identity === "guest") {
-                                console.log(peerSocket.user.name);
-                                removeSocket(peerSocket);
+            recorder.getSnapshot(function (snapshot) {
+                app.get(genesisUrl, function (req, res) {
+                    usages++;
+                    res.set('Content-Type', 'application/vnd.oasis.opendocument.text');
+                    res.attachment(document.title);
+                    res.send(new Buffer(snapshot.data));
+                    var routes = app._router.stack;
+                    if (usages === 2) {
+                        for (var i = 0; i < routes.length; i++) {
+                            if (routes[i].path === genesisUrl) {
+                                routes.splice(i, 1);
+                                break;
                             }
+                        }
+                    }
+                });
+
+                socket.emit("join_success", {
+                    memberId: memberId,
+                    genesisUrl: genesisUrl
+                });
+
+                // Service replay requests
+                socket.on("replay", function () {
+                    setupMemberSnapshot(socket, snapshot.operations, genesisSeq);
+                });
+
+                // Store, analyze, and broadcast incoming commits
+                socket.on("commit_ops", function (data, cb) {
+                    var clientSeq = data.head,
+                        ops = data.ops;
+                    if (clientSeq === serverSeq) {
+                        writeOpsToDocument(ops, function () {
+                            cb({
+                                conflict: false,
+                                head: serverSeq
+                            });
+                            trackCursors(ops);
+                            broadcastOpsByMember(socket, data.ops);
+                        });
+                    } else {
+                        cb({
+                            conflict: true
                         });
                     }
                 });
-            }
+
+                // Service various requests
+                socket.on("access_get", function (data, cb) {
+                    cb({
+                        access: document.isPublic ? "public" : "normal"
+                    });
+                });
+
+                if (socket.user.identity !== "guest") {
+                    socket.on("access_change", function (data) {
+                        document.isPublic = data.access === "public";
+                        broadcastMessage("access_changed", {
+                            access: data.access === "public" ? "public" : "normal"
+                        });
+                        if (data.access !== "public") {
+                            sockets.forEach(function (peerSocket) {
+                                if (peerSocket.user.identity === "guest") {
+                                    console.log(peerSocket.user.name);
+                                    removeSocket(peerSocket);
+                                }
+                            });
+                        }
+                    });
+                }
+            });
 
             // Handle dropout events
             socket.on("leave", function () {
@@ -349,7 +378,7 @@ var Room = function (doc, objectCache, cb) {
             detachSocket(socket, cb);
         }, function () {
             sockets.length = 0;
-            callback();
+            recorder.destroy(callback);
         });
     };
 
@@ -360,7 +389,9 @@ var Room = function (doc, objectCache, cb) {
             chunk = objectCache.getTrackedObject(lastChunk);
             // Sanitize leftovers from previous session, if any
             sanitizeDocument();
-            cb();
+            recorder = new Recorder(chunk, function () {
+                cb();
+            });
         });
     }
 
