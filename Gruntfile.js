@@ -234,7 +234,7 @@ module.exports = function (grunt) {
     },
 
     // Renames files for browser caching purposes
-    rev: {
+    filerev: {
       dist: {
         files: {
           src: [
@@ -684,7 +684,7 @@ module.exports = function (grunt) {
     'cdnify',
     'cssmin',
     'uglify',
-    'rev',
+    'filerev',
     'usemin'
   ]);
 
