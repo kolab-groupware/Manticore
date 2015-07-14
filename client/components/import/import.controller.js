@@ -1,13 +1,20 @@
 'use strict';
 
 angular.module('manticoreApp')
-    .controller('ImportCtrl', function ($scope, FileUploader, Auth) {
+    .controller('ImportCtrl', function ($scope, $rootScope, FileUploader, Auth) {
         var uploader = new FileUploader({
             url: '/api/documents/upload',
-            removeAfterUpload: true,
-            autoUpload: true,
             headers: {
                 'Authorization': 'Bearer ' + Auth.getToken()
+            },
+            removeAfterUpload: true,
+            autoUpload: true,
+            onCompleteAll: function () {
+                // Wait a little before firing this event, as the upload may not
+                // be accessible from MongoDB immediately
+                window.setTimeout(function () {
+                    $rootScope.$broadcast('documentsUploaded');
+                }, 1000);
             }
         });
 

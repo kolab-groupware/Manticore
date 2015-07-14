@@ -1,7 +1,7 @@
-.container
-    .no-docs(ng-if='!documents.length')
+.container(ng-switch='documents.length === 0')
+    .no-docs(ng-switch-when='true')
         p.advice No documents yet. Why not add some?
-    .document-list(ng-if='documents.length')
+    .document-list(ng-switch-when='false')
         table.table.table-striped(st-table='displayedDocuments' st-safe-src='documents')
             thead
                 tr
