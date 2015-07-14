@@ -13,7 +13,7 @@ div.import-box(ng-controller='ImportCtrl')
                 )
             | Click to select files to upload, or drag them here
             
-    .row(ng-hide='!uploader.getNotUploadedItems().length')
+    .row(ng-hide='!uploader.queue.length')
         table.table
             thead
                 tr

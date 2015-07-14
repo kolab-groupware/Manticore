@@ -5,7 +5,6 @@ angular.module('manticoreApp')
     $scope.displayedDocuments = [];
 
     function update() {
-        console.log('here');
         $http.get('/api/documents').success(function (documents) {
             $scope.documents = documents;
         });

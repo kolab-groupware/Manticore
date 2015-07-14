@@ -7,13 +7,14 @@ angular.module('manticoreApp')
             headers: {
                 'Authorization': 'Bearer ' + Auth.getToken()
             },
-            removeAfterUpload: true,
+            removeAfterUpload: false,
             autoUpload: true,
             onCompleteAll: function () {
                 // Wait a little before firing this event, as the upload may not
                 // be accessible from MongoDB immediately
                 window.setTimeout(function () {
                     $rootScope.$broadcast('documentsUploaded');
+                    uploader.clearQueue();
                 }, 1000);
             }
         });
