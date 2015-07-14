@@ -21,7 +21,7 @@ var gfs = Grid(mongoose.connection.db, mongoose.mongo);
 
 // Get list of documents
 exports.index = function(req, res) {
-  Document.find(function (err, documents) {
+  Document.find().populate('creator').exec(function (err, documents) {
     if(err) { return handleError(res, err); }
     return res.json(200, documents);
   });

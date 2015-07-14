@@ -1,19 +1,12 @@
 div(ng-include='"components/navbar/navbar.html"')
 
-header#banner.hero-unit(ng-hide='isLoggedIn()       ')
+header#banner.hero-unit(ng-if='!isLoggedIn()')
   .container
     h1 Manticore
     p.lead Realtime collaboration for rich office documents.
     img(src='assets/images/manticore.jpg', alt='Manticore')
 
-.container(ng-hide='!isLoggedIn()')
-  .row
-    .col-lg-12
-      h1.page-header Documents
-      ul.col-md-4.col-lg-4.col-sm-6(ng-repeat='document in documents')
-        li
-          a(ui-sref='editor({id: document._id})')
-            | {{document.title}}
+document-list(ng-if='isLoggedIn()')
 
 //- footer.footer
   .container

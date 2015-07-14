@@ -14,6 +14,7 @@ var DocumentChunk = new Schema({
 var DocumentSchema = new Schema({
   title:    String,
   created:  { type: Date, default: Date.now, required: true },
+  date:     { type: Date, default: Date.now },
   creator:  { type: Schema.Types.ObjectId, ref: 'User' },
   editors:  { type: [{type: Schema.Types.ObjectId, ref: 'User'}], default: [] },
   chunks:   { type: [{type: Schema.Types.ObjectId, ref: 'DocumentChunk'}], required: true }
