@@ -7,11 +7,12 @@ div.import-box(ng-controller='ImportCtrl')
         )
             input(
                 type='file'
+                accept='.odt'
                 nv-file-select=''
                 uploader='uploader'
                 multiple
                 )
-            | Click to select files to upload, or drag them here
+            | Click to select (.odt) files to upload, or drag them here
             
     .row(ng-hide='!uploader.queue.length')
         table.table
