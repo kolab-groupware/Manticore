@@ -1,8 +1,10 @@
 .advice
     text-align center
+
 .document-list
     height 100%
     padding 0
+    user-select none
     table
         margin 0
         thead
@@ -10,6 +12,8 @@
             tr
                 th
                     padding 12px
+                    &[st-sort]
+                        cursor pointer
         tbody
             border 1px solid lightgray
             tr
@@ -20,3 +24,9 @@
                     &.title a
                         font-weight bold
                         color black !important
+
+.st-sort-ascent:after
+    content '\25B2'
+
+.st-sort-descent:after
+    content '\25BC'
