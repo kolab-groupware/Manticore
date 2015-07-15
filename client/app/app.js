@@ -9,7 +9,8 @@ angular.module('manticoreApp', [
   'angularFileUpload',
   'fileSaver',
   'smart-table',
-  'angularMoment'
+  'angularMoment',
+  'angularLoad'
 ])
   .config(function ($stateProvider, $urlRouterProvider, $locationProvider, $httpProvider) {
     $urlRouterProvider
