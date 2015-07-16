@@ -10,8 +10,11 @@ div.navbar.navbar-default.navbar-static-top(ng-controller='NavbarCtrl')
 
     div#navbar-main.navbar-collapse.collapse(collapse='isCollapsed')
       ul.nav.navbar-nav
-        li(ng-show='isAdmin()', ng-class='{active: isActive("/admin")}')
-          a(href='/admin') Admin
+        li(ng-show='isAdmin()', ng-class='{active: isActive("/users")}')
+          a(ui-sref='users') Users
+
+        li(ng-show='isAdmin()', ng-class='{active: isActive("/templates")}')
+          a(ui-sref='templates') Templates
 
         li.dropdown(ng-show='isLoggedIn() && isActive("/")' dropdown auto-close='disabled')
           a.dropdown-toggle(href='#' dropdown-toggle role='button')

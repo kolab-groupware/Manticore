@@ -1,0 +1,12 @@
+input.label-editor(
+    ng-model='model'
+    ng-model-options='{updateOn: "blur"}'
+    ng-change='change(model)'
+    ng-keypress='handleEnterKey($event)'
+    ng-mouseenter='hover = true'
+    ng-mouseleave='hover = false'
+    ng-focus='focus = true'
+    ng-blur='focus = false'
+    placeholder='{{placeholder}}'
+)
+span.glyphicon.glyphicon-pencil.label-editor-pencil(ng-show='hover && !focus')

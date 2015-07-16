@@ -1,0 +1,31 @@
+div(ng-include='"components/navbar/navbar.html"')
+.container
+  div.btn.btn-danger.upload-button(
+      type='button'
+      uploader='uploader'
+      ng-disabled='uploader.isUploading'
+  )
+    input(
+      type='file'
+      accept='.odt'
+      nv-file-select=''
+      uploader='uploader'
+    )
+    span.glyphicon.glyphicon-upload
+    |  {{uploader.isUploading ? 'Uploading...' : 'Upload'}} 
+
+  ul.list-group
+    li.list-group-item(ng-repeat='template in templates')
+      label-editor.text-strong(
+          ng-model='template.title'
+          ng-change='update(template)'
+          placeholder='Untitled template'
+      )
+      br
+      label-editor.text-muted(
+          ng-model='template.description'
+          ng-change='update(template)'
+          placeholder='No description'
+      )
+      a.trash(ng-click='delete(template)')
+        span.glyphicon.glyphicon-trash.pull-right
