@@ -3,19 +3,6 @@ div(ng-include='"components/navbar/navbar.html"')
   .row
     .col-sm-12
       h1 Login
-      p
-        | Accounts are reset on server restart from
-        code server/config/seed.js
-        | . Default account is
-        code test@test.com
-        | /
-        code test
-      p
-        | Admin account is
-        code admin@admin.com
-        | /
-        code admin
-
     .col-sm-12
       form.form(name='form', ng-submit='login(form)', novalidate='')
         .form-group
