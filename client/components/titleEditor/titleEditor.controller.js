@@ -31,7 +31,6 @@ angular.module('manticoreApp')
         if (online === undefined) { return; }
         if (online) {
             $scope.editor.addEventListener(Wodo.EVENT_METADATACHANGED, handleTitleChanged);
-            $scope.title = $scope.editor.getMetadata('dc:title');
         } else {
             $scope.editor.removeEventListener(Wodo.EVENT_METADATACHANGED, handleTitleChanged);
         }
