@@ -3,21 +3,21 @@
 //
 
 // Hide member list view
-.wodo .webodfeditor-editor
+.webodfeditor-editor
     width 100% !important
     height 100% !important
     border none !important
 
-.wodo .webodfeditor-members
+.webodfeditor-members
     display none
 
-.wodo .dijitToolbar
+.dijitToolbar
     background-image none !important
     background-color #f8f8f8 !important
     border-top: 1px solid lightgray;
 
 // Resolve bootstrap conflicts and hide cursors' avatar handles
-.wodo .webodf-caretOverlay
+.webodf-caretOverlay
     .caret
         border-right none
         border-top none
@@ -25,3 +25,12 @@
         height inherit !important
     .handle
         display none !important
+
+.webodf-selectionOverlay
+    stroke initial !important
+
+.editInfoMarker
+    width 3px !important
+    border-radius 0 !important
+    box-shadow none !important
+    outline 1px solid black
