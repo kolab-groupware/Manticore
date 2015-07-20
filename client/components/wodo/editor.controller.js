@@ -45,7 +45,6 @@ angular.module('manticoreApp')
     function boot() {
         clientAdaptor = new Adaptor(
             $scope.document._id,
-            '/api/documents/snapshot/' + _.last($scope.document.chunks),
             Auth.getToken(),
             function onConnect() {
                 console.log('onConnect');

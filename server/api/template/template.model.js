@@ -5,7 +5,8 @@ var mongoose = require('mongoose'),
 
 var TemplateSchema = new Schema({
   title: String,
-  description: String
- });
+  description: String,
+  fileId: Schema.Types.ObjectId
+});
 
 module.exports = mongoose.model('Template', TemplateSchema);

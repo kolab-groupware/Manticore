@@ -33,7 +33,6 @@ angular.module('manticoreApp')
       });
     };
 
-    $scope.$watch('templates')
     function refresh() {
         $http.get('/api/templates').success(function (templates) {
             $scope.templates = templates;

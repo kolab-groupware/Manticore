@@ -9,7 +9,8 @@ var router = express.Router();
 router.get('/', auth.isAuthenticated(), controller.index);
 router.get('/:id', auth.isAuthenticated(), controller.show);
 router.get('/snapshot/:id', controller.showSnapshot)
-router.post('/', auth.isAuthenticated(), controller.create);
+router.get('/fromTemplate/:id', auth.isAuthenticated(),
+    controller.createFromTemplate);
 router.post('/upload', auth.isAuthenticated(), controller.upload,
     controller.acknowledgeUpload);
 router.put('/:id', auth.isAuthenticated(), controller.update);

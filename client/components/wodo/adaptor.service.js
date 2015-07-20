@@ -224,9 +224,10 @@ angular.module('manticoreApp')
         init();
     };
 
-    var ClientAdaptor = function (documentId, documentURL, authToken, connectedCb, kickedCb, disconnectedCb) {
+    var ClientAdaptor = function (documentId, authToken, connectedCb, kickedCb, disconnectedCb) {
         var self = this,
             memberId,
+            documentUrl,
             socket;
 
         this.getMemberId = function () {
@@ -234,7 +235,7 @@ angular.module('manticoreApp')
         };
 
         this.getGenesisUrl = function () {
-            return documentURL;
+            return documentUrl;
         };
 
         this.createOperationRouter = function (odfContainer, errorCb) {
@@ -246,6 +247,7 @@ angular.module('manticoreApp')
             socket.on('join_success', function handleJoinSuccess(data) {
                 socket.removeListener('join_success', handleJoinSuccess);
                 memberId = data.memberId;
+                documentUrl = '/api/documents/snapshot/' + data.snapshotId;
                 cb(memberId);
             });
             socket.emit('join', {

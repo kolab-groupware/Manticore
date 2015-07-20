@@ -8,7 +8,8 @@ var mongoose = require('mongoose'),
  * GridFS of the same ID.
  */
 var DocumentChunk = new Schema({
-    operations: { type: Array, default: [] }
+    operations: { type: Array, default: [] },
+    fileId: { type: Schema.Types.ObjectId }
 });
 
 var DocumentSchema = new Schema({

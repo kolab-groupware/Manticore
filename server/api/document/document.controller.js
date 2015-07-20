@@ -16,6 +16,7 @@ var multer = require('multer');
 
 var DocumentChunk = require('./document.model').DocumentChunk;
 var Document = require('./document.model').Document;
+var Template = require('../template/template.model');
 
 var gfs = Grid(mongoose.connection.db, mongoose.mongo);
 
@@ -44,10 +45,12 @@ exports.upload = function (req, res, next) {
             files: 5
         },
         onFileUploadStart: function (file) {
-            var chunkId = new mongoose.Types.ObjectId();
+            var chunkId = new mongoose.Types.ObjectId(),
+                fileId = new mongoose.Types.ObjectId();
 
             var firstChunk = new DocumentChunk({
-                _id: chunkId
+                _id: chunkId,
+                fileId: fileId
             });
             var newDocument = new Document({
                 title: file.originalname,
@@ -55,7 +58,7 @@ exports.upload = function (req, res, next) {
                 chunks: [chunkId]
             });
             this.upload = gfs.createWriteStream({
-                _id: chunkId,
+                _id: fileId,
                 filename: file.originalname,
                 mode: 'w',
                 chunkSize: 1024 * 4,
@@ -107,6 +110,33 @@ exports.create = function(req, res) {
   Document.create(req.body, function(err, document) {
     if(err) { return handleError(res, err); }
     return res.json(201, document);
+  });
+};
+
+exports.createFromTemplate = function (req, res) {
+  Template.findById(req.params.id, function (err, template) {
+      if (err) { return handleError(res, err); }
+      if (!template) { return res.send(404); }
+
+      var chunkId = new mongoose.Types.ObjectId();
+
+      var firstChunk = new DocumentChunk({
+          _id: chunkId,
+          fileId: template.fileId
+      });
+      var newDocument = new Document({
+          title: template.title,
+          creator: req.user._id,
+          chunks: [chunkId]
+      });
+
+      firstChunk.save(function (err) {
+          if (!err) {
+              newDocument.save(function (err) {
+                  return res.json(201, newDocument);
+              });
+          }
+      })
   });
 };
 

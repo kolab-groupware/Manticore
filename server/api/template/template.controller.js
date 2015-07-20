@@ -33,14 +33,14 @@ exports.upload = function (req, res, next) {
             fileSize: 1024 * 1024 * 20, // 20 Megabytes
         },
         onFileUploadStart: function (file) {
-            var templateId = new mongoose.Types.ObjectId();
+            var templateFileId = new mongoose.Types.ObjectId();
 
             var newTemplate = new Template({
-                _id: templateId,
-                title: file.originalname
+                title: file.originalname,
+                fileId: templateFileId
             });
             this.upload = gfs.createWriteStream({
-                _id: templateId,
+                _id: templateFileId,
                 filename: file.originalname,
                 mode: 'w',
                 chunkSize: 1024 * 4,

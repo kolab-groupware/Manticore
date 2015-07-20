@@ -240,7 +240,8 @@ var Room = function (doc, objectCache, cb) {
             broadcastOpsByMember(socket, ops);
 
             socket.emit("join_success", {
-                memberId: memberId
+                memberId: memberId,
+                snapshotId: chunk.fileId
             });
             // Service replay requests
             socket.on("replay", function () {
@@ -357,7 +358,6 @@ var Room = function (doc, objectCache, cb) {
         document = objectCache.getTrackedObject(doc);
         DocumentChunk.findById(_.last(document.chunks), function (err, lastChunk) {
             chunk = objectCache.getTrackedObject(lastChunk);
-            console.log(chunk);
             // Sanitize leftovers from previous session, if any
             sanitizeDocument();
             cb();
