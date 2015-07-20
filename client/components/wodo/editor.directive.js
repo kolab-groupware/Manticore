@@ -27,7 +27,7 @@ angular.module('manticoreApp')
                   'dijit': wodoPrefix + '/dijit',
                   'dojox': wodoPrefix + '/dojox',
                   'dojo': wodoPrefix + '/dojo',
-                  'resources': wodoPrefix + '/resources'
+                  'resources': '/assets/bundled'
               }
             };
 

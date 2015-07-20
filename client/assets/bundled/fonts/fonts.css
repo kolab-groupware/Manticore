@@ -1,0 +1,156 @@
+@font-face {
+  font-family: 'Anonymous Pro';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Anonymous Pro'), local('AnonymousPro'), url('/assets/bundled/fonts/Anonymous_Pro/AnonymousPro-Regular.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Anonymous Pro';
+  font-style: normal;
+  font-weight: 700;
+  src: local('Anonymous Pro Bold'), local('AnonymousPro-Bold'), url('/assets/bundled/fonts/Anonymous_Pro/AnonymousPro-Bold.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Anonymous Pro';
+  font-style: italic;
+  font-weight: 400;
+  src: local('Anonymous Pro Italic'), local('AnonymousPro-Italic'), url('/assets/bundled/fonts/Anonymous_Pro/AnonymousPro-Italic.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Anonymous Pro';
+  font-style: italic;
+  font-weight: 700;
+  src: local('Anonymous Pro Bold Italic'), local('AnonymousPro-BoldItalic'), url('/assets/bundled/fonts/Anonymous_Pro/AnonymousPro-BoldItalic.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Arvo';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Arvo'), url('/assets/bundled/fonts/Arvo/Arvo-Regular.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Arvo';
+  font-style: normal;
+  font-weight: 700;
+  src: local('Arvo Bold'), local('Arvo-Bold'), url('/assets/bundled/fonts/Arvo/Arvo-Bold.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Arvo';
+  font-style: italic;
+  font-weight: 400;
+  src: local('Arvo Italic'), local('Arvo-Italic'), url('/assets/bundled/fonts/Arvo/Arvo-Italic.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Arvo';
+  font-style: italic;
+  font-weight: 700;
+  src: local('Arvo Bold Italic'), local('Arvo-BoldItalic'), url('/assets/bundled/fonts/Arvo/Arvo-BoldItalic.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Dancing Script';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Dancing Script'), local('DancingScript'), url('/assets/bundled/fonts/Dancing_Script/DancingScript-Regular.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Dancing Script';
+  font-style: normal;
+  font-weight: 700;
+  src: local('Dancing Script Bold'), local('DancingScript-Bold'), url('/assets/bundled/fonts/Dancing_Script/DancingScript-Bold.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Lato';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Lato Regular'), local('Lato-Regular'), url('/assets/bundled/fonts/Lato/Lato-Regular.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Lato';
+  font-style: normal;
+  font-weight: 700;
+  src: local('Lato Bold'), local('Lato-Bold'), url('/assets/bundled/fonts/Lato/Lato-Bold.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Lato';
+  font-style: italic;
+  font-weight: 400;
+  src: local('Lato Italic'), local('Lato-Italic'), url('/assets/bundled/fonts/Lato/Lato-Italic.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Lato';
+  font-style: italic;
+  font-weight: 700;
+  src: local('Lato Bold Italic'), local('Lato-BoldItalic'), url('/assets/bundled/fonts/Lato/Lato-BoldItalic.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Liberation Mono';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Liberation Mono'), local('LiberationMono-Regular'), url('/assets/bundled/fonts/Liberation/LiberationMono-Regular.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Liberation Mono';
+  font-style: normal;
+  font-weight: 700;
+  src: local('Liberation Mono Bold'), local('LiberationMono-Bold'), url('/assets/bundled/fonts/Liberation/LiberationMono-Bold.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Liberation Mono';
+  font-style: italic;
+  font-weight: 400;
+  src: local('Liberation Mono Italic'), local('LiberationMono-Italic'), url('/assets/bundled/fonts/Liberation/LiberationMono-Italic.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Liberation Mono';
+  font-style: italic;
+  font-weight: 700;
+  src: local('Liberation Mono Bold Italic'), local('LiberationMono-BoldItalic'), url('/assets/bundled/fonts/Liberation/LiberationMono-BoldItalic.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Liberation Sans';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Liberation Sans'), local('LiberationSans-Regular'), url('/assets/bundled/fonts/Liberation/LiberationSans-Regular.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Liberation Sans';
+  font-style: normal;
+  font-weight: 700;
+  src: local('Liberation Sans Bold'), local('LiberationSans-Bold'), url('/assets/bundled/fonts/Liberation/LiberationSans-Bold.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Liberation Sans';
+  font-style: italic;
+  font-weight: 400;
+  src: local('Liberation Sans Italic'), local('LiberationSans-Italic'), url('/assets/bundled/fonts/Liberation/LiberationSans-Italic.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Liberation Sans';
+  font-style: italic;
+  font-weight: 700;
+  src: local('Liberation Sans Bold Italic'), local('LiberationSans-BoldItalic'), url('/assets/bundled/fonts/Liberation/LiberationSans-BoldItalic.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Liberation Serif';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Liberation Serif'), local('LiberationSerif-Regular'), url('/assets/bundled/fonts/Liberation/LiberationSerif-Regular.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Liberation Serif';
+  font-style: normal;
+  font-weight: 700;
+  src: local('Liberation Serif Bold'), local('LiberationSerif-Bold'), url('/assets/bundled/fonts/Liberation/LiberationSerif-Bold.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Liberation Serif';
+  font-style: italic;
+  font-weight: 400;
+  src: local('Liberation Serif Italic'), local('LiberationSerif-Italic'), url('/assets/bundled/fonts/Liberation/LiberationSerif-Italic.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Liberation Serif';
+  font-style: italic;
+  font-weight: 700;
+  src: local('Liberation Serif Bold Italic'), local('LiberationSerif-BoldItalic'), url('/assets/bundled/fonts/Liberation/LiberationSerif-BoldItalic.ttf') format('truetype');
+}
