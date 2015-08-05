@@ -10,5 +10,16 @@ module.exports = {
   SESSION_SECRET:   'manticore-secret',
 
   // Control debug level for modules using visionmedia/debug
-  DEBUG: ''
+  DEBUG: '',
+
+  /*
+   * Supported authentication strategies.
+   * 1. 'local' for storing everything in Mongo/GridFS, auth using username/password
+   * 2. 'webdav' for linking with a WebDAV server, auth using WebDAV credentials
+   */
+  STORAGE: 'webdav',
+
+  // More configuration for the chosen auth type. None required for 'local'
+  WEBDAV_SERVER: 'https://apps.kolabnow.com',
+  WEBDAV_PATH: '/'
 };
