@@ -10,8 +10,6 @@ process.env.NODE_ENV = process.env.NODE_ENV || 'development';
 var express = require('express');
 var mongoose = require('mongoose');
 var config = require('./config/environment');
-var Adaptor = require('./components/adaptor');
-var ObjectCache = require('./components/objectcache');
 
 // Connect to database
 mongoose.connect(config.mongo.uri, config.mongo.options);
@@ -20,13 +18,16 @@ mongoose.connect(config.mongo.uri, config.mongo.options);
 if(config.seedDB) { require('./config/seed'); }
 
 // Setup server
+var Adaptor = require('./components/adaptor');
+var ObjectCache = require('./components/objectcache');
 var app = express();
+app.set('objectCache', new ObjectCache());
+
 var server = require('http').createServer(app);
 var socketio = require('socket.io')(server, {
     path: '/socket.io'
 });
 var adaptor;
-var objectCache;
 var sockets = [];
 
 require('./config/socketio')(socketio);
@@ -43,14 +44,13 @@ server.on('connection', function (socket) {
 // Start server
 server.listen(config.port, config.ip, function () {
   console.log('Express server listening on %d, in %s mode', config.port, app.get('env'));
-  objectCache = new ObjectCache();
-  adaptor = new Adaptor(app, socketio, objectCache);
+  adaptor = new Adaptor(app, socketio, app.get('objectCache'));
 });
 
 function destroy() {
     adaptor.destroy(function () {
         console.log('All realtime clients disconnected.');
-        objectCache.destroy(function () {
+        app.get('objectCache').destroy(function () {
             console.log('All objects persisted to DB.');
             sockets.forEach(function (socket) {
                 socket.destroy();

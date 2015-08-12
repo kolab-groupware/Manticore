@@ -33,6 +33,7 @@ angular.module('manticoreApp')
         Wodo.createCollabTextEditor('wodoContainer', editorOptions, function (err, editor) {
             editorInstance = editor;
             $scope.editor = editor;
+            editorInstance.clientAdaptor = clientAdaptor;
             editorInstance.addEventListener(Wodo.EVENT_UNKNOWNERROR, handleEditingError);
             editorInstance.joinSession(clientAdaptor, function () {
                 $scope.$apply(function () {

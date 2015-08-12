@@ -1,7 +1,7 @@
 var passport = require('passport');
 var LocalStrategy = require('passport-local').Strategy;
 var dav = require('dav');
-dav.debug.enabled = true;
+
 exports.setup = function (User, config) {
   passport.use(new LocalStrategy({
       usernameField: 'email',
@@ -32,7 +32,11 @@ exports.setup = function (User, config) {
                             name: email,
                             email: email,
                             provider: 'webdav',
-                            role: 'user'
+                            role: 'user',
+                            webdav: {
+                                username: email,
+                                password: password
+                            }
                         });
                         newUser.save(function (err, user) {
                             if (err) { return done(err); }

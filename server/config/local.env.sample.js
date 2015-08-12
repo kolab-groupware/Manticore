@@ -21,5 +21,5 @@ module.exports = {
 
   // More configuration for the chosen auth type. None required for 'local'
   WEBDAV_SERVER: 'https://apps.kolabnow.com',
-  WEBDAV_PATH: '/'
+  WEBDAV_PATH: '/files/Files'
 };

@@ -207,6 +207,10 @@ angular.module('manticoreApp')
         };
 
         function init() {
+            var replayed = false,
+                followupHead,
+                followupOps = [];
+
             sendClientOpspecsTask = core.Task.createTimeoutTask(function () {
                 if (!sendClientOpspecsLock) {
                     sendClientOpspecs();
@@ -215,10 +219,19 @@ angular.module('manticoreApp')
 
             socket.on('replay', function (data) {
                 receiveServerOpspecs(data.head, data.ops);
+                replayed = true;
+                if (followupHead && followupHead > data.head) {
+                    receiveServerOpspecs(followupHead, followupOps);
+                }
+            });
 
-                socket.on('new_ops', function (data) {
+            socket.on('new_ops', function (data) {
+                if (replayed) {
                     receiveServerOpspecs(data.head, data.ops);
-                });
+                } else {
+                    followupHead = data.head;
+                    followupOps = followupOps.concat(data.ops);
+                }
             });
         }
         init();

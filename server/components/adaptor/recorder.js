@@ -5,7 +5,7 @@ var config = require('../../config/environment');
 
 var Recorder = function (lastChunk, cb) {
     var self = this,
-        baseSnapshotUrl = 'http://' + (config.ip || 'localhost') + ':' + config.port + '/api/documents/snapshot/' + lastChunk.fileId,
+        baseSnapshotUrl = 'http://' + (config.ip || 'localhost') + ':' + config.port + '/api/documents/snapshot/' + lastChunk.snapshot.fileId,
         emitter = new EventEmitter(),
         snapshotReadyCb = function () {},
         ph,
@@ -24,14 +24,16 @@ var Recorder = function (lastChunk, cb) {
     }
 
     /* jshint ignore:start */
-    function loadDocument(url, operations) {
-        console.log = function (message) {
+    function loadDocument(url, sequence, operations) {
+        window.console.log = function (message) {
             window.callPhantom({event: 'log', message: message});
         };
 
         var odfElement = document.getElementById('odf');
         document.odfCanvas = new odf.OdfCanvas(odfElement);
         document.odfCanvas.addListener('statereadychange', function () {
+            // The "sequence" is the number of ops executed so far in the canonical document history
+            window.sequence = sequence;
             document.session = new ops.Session(document.odfCanvas);
             document.odtDocument = document.session.getOdtDocument();
 
@@ -42,6 +44,7 @@ var Recorder = function (lastChunk, cb) {
                 for (i = 0; i < opspecs.length; i++) {
                     op = document.session.getOperationFactory().create(opspecs[i]);
                     if (op && op.execute(document.session.getOdtDocument())) {
+                        window.sequence++;
                         // console.log('Just executed op ' + opspecs[i].optype + 'by ' + opspecs[i].memberid);
                     } else {
                         break;
@@ -103,7 +106,8 @@ var Recorder = function (lastChunk, cb) {
                 window.callPhantom({
                     event: 'snapshotReady' + eventId,
                     operations: ops,
-                    data: data
+                    data: data,
+                    sequence: window.sequence
                 });
             });
         }, function () {}, eventId);
@@ -116,13 +120,17 @@ var Recorder = function (lastChunk, cb) {
 
 
     function init() {
-        phantom.create('--web-security=no', function (ph) {
+        phantom.create('--web-security=no', function (instance) {
+            ph = instance;
             ph.createPage(function (p) {
                 p.open('file://' + __dirname + '/odf.html', function (status) {
                     if (status === 'success') {
                         page = p;
                         page.set('onCallback', phantomCallback);
-                        page.evaluate(loadDocument, function (){}, baseSnapshotUrl, lastChunk.operations);
+                        page.evaluate(loadDocument, function (){},
+                            baseSnapshotUrl,
+                            lastChunk.sequence - lastChunk.snapshot.operations.length,
+                            lastChunk.snapshot.operations.concat(lastChunk.operations));
                     } else {
                         return cb(new Error('Could not initialize recorder module.'));
                     }

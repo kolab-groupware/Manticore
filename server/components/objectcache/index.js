@@ -27,7 +27,7 @@ var mongoose = require("mongoose"),
     async = require("async"),
     ObjectCache;
 
-// Maintains an in-memory cache of objects from mongoose collections,
+// Maintains an in-memory cache of documents from mongoose collections,
 // and writes them to the DB periodically.
 
 var ObjectCache = function () {
@@ -64,7 +64,7 @@ var ObjectCache = function () {
 
     function saveObjects(callback) {
         async.each(Object.keys(objects), function (id, cb) {
-            if (objects[id].isModified()) {
+            if (objects[id].isModified() && objects[id].live !== false) {
                 objects[id].save(cb);
             } else {
                 cb();
