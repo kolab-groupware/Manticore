@@ -31,7 +31,7 @@ var async = require("async"),
 
 // Maintains an in-memory cache of users, documents, and sessions.
 // And writes/reads them from the DB on demand.
-var ServerAdaptor = function (socketServer, objectCache) {
+var ServerAdaptor = function (app, socketServer, objectCache) {
     var rooms = {};
 
     function addToRoom(documentId, socket) {
@@ -42,7 +42,7 @@ var ServerAdaptor = function (socketServer, objectCache) {
                 if (err) { return console.log(err); }
                 if (!doc) { return console.log("documentId unknown:"+documentId); }
 
-                room = new Room(doc, objectCache, function () {
+                room = new Room(app, doc, objectCache, function () {
                     rooms[documentId] = room;
                     room.attachSocket(socket);
                 });

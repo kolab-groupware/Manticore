@@ -15,7 +15,7 @@
     "lodash": "3.9.3",
     "angular-ui-router": "0.2.15",
     "angular-file-upload": "1.1.5",
-    "wodo": "http://webodf.org/download/wodocollabtexteditor-0.5.8.preview1.zip",
+    "wodo": "http://webodf.org/download/wodocollabtexteditor-0.5.8.zip",
     "angular-file-saver": "~0.0.4",
     "angular-smart-table": "~2.1.0",
     "angular-moment": "~0.10.1",
