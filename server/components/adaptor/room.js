@@ -25,17 +25,66 @@ var async = require("async");
 var _ = require("lodash");
 var RColor = require('../colors');
 var DocumentChunk  = require("../../api/document/document.model").DocumentChunk;
+var DocumentController = require("../../api/document/document.controller");
+
 var Recorder = require('./recorder');
 
-var Room = function (app, doc, objectCache, cb) {
-    var document,
-        chunk,
+var Room = function (app, document, objectCache, cb) {
+    var ChunkManager = function (seedChunk) {
+        var serverSeq,
+            chunks = [];
+
+        function getOperationsAfter(seq) {
+            var ops = [];
+
+            for (var i = chunks.length - 1; i >= 0; i--) {
+                if (chunks[i].sequence >= seq) {
+                    ops = chunks[i].operations.concat(ops);
+                } else {
+                    var basedOn = seq - chunks[i].sequence;
+                    ops = chunks[i].operations.slice(basedOn).concat(ops);
+                    break;
+                }
+            }
+
+            return ops;
+        }
+        this.getOperationsAfter = getOperationsAfter;
+
+        function appendOperations(ops) {
+            var lastChunk = getLastChunk();
+            lastChunk.operations = lastChunk.operations.concat(ops);
+            serverSeq += ops.length;
+        }
+        this.appendOperations = appendOperations;
+
+        function appendChunk(chunk) {
+            var trackedChunk = objectCache.getTrackedObject(chunk);
+            chunks.push(trackedChunk);
+            serverSeq = trackedChunk.sequence + trackedChunk.operations.length;
+        }
+        this.appendChunk = appendChunk;
+
+        function getLastChunk() {
+            return _.last(chunks);
+        }
+        this.getLastChunk = getLastChunk;
+
+        this.getServerSequence = function () {
+            return serverSeq;
+        };
+
+        appendChunk(seedChunk);
+    };
+
+    var chunkManager,
         recorder,
         hasCursor = {},
         sockets = [],
         userColorMap = {},
         randomColor = new RColor(),
-        serverSeq = 0;
+        saveInProgress = false,
+        isAvailable = false;
 
     function trackTitle(ops) {
         var newTitle, i;
@@ -80,8 +129,10 @@ var Room = function (app, doc, objectCache, cb) {
         }
     }
 
+    // Removes all cursors and members in the correct order within the last chunk
     function sanitizeDocument() {
-        var ops = chunk.operations,
+        var chunk = chunkManager.getLastChunk(),
+            ops = chunk.snapshot.operations.concat(chunk.operations),
             unbalancedCursors = {},
             unbalancedMembers = {},
             lastAccessDate = document.date,
@@ -122,8 +173,7 @@ var Room = function (app, doc, objectCache, cb) {
 
         if (newOps.length) {
             // Update op stack
-            chunk.operations = chunk.operations.concat(newOps);
-            serverSeq = chunk.operations.length;
+            chunkManager.appendOperations(newOps);
         }
     }
 
@@ -135,15 +185,15 @@ var Room = function (app, doc, objectCache, cb) {
 
     function sendOpsToMember(socket, ops) {
         socket.emit("new_ops", {
-            head: serverSeq,
+            head: chunkManager.getServerSequence(),
             ops: ops
         });
     }
 
-    function setupMemberSnapshot(socket, operations, genesisSeq) {
+    function setupMemberSnapshot(socket, snapshot) {
         socket.emit("replay", {
-            head: serverSeq,
-            ops: operations.concat(getOpsAfter(genesisSeq))
+            head: chunkManager.getServerSequence(),
+            ops: snapshot.operations.concat(chunkManager.getOperationsAfter(snapshot.sequence))
         });
     }
 
@@ -159,7 +209,7 @@ var Room = function (app, doc, objectCache, cb) {
     }
 
     function writeOpsToDocument(ops, cb) {
-        if (!ops.length) {
+        if (!ops.length || !document.live) {
             cb();
         }
 
@@ -168,8 +218,7 @@ var Room = function (app, doc, objectCache, cb) {
             trackEditors();
 
             // Update op stack
-            chunk.operations = chunk.operations.concat(ops);
-            serverSeq = chunk.operations.length;
+            chunkManager.appendOperations(ops);
 
             // Update modified date
             document.date = new Date();
@@ -226,10 +275,6 @@ var Room = function (app, doc, objectCache, cb) {
         });
     }
 
-    function getOpsAfter(basedOn) {
-        return chunk.operations.slice(basedOn, serverSeq);
-    }
-
     this.socketCount = function () {
         return sockets.length;
     };
@@ -245,17 +290,18 @@ var Room = function (app, doc, objectCache, cb) {
             // Generate genesis URL with the latest document version's snapshot
             // We use a two-time URL because WebODF makes two identical GET requests (!)
             var genesisUrl = '/genesis/' + Date.now().toString(),
-                genesisSeq = serverSeq,
                 usages = 0;
 
             recorder.getSnapshot(function (snapshot) {
+                var buffer = new Buffer(snapshot.data);
                 app.get(genesisUrl, function (req, res) {
                     usages++;
                     res.set('Content-Type', 'application/vnd.oasis.opendocument.text');
                     res.attachment(document.title);
-                    res.send(new Buffer(snapshot.data));
+                    res.send(buffer);
                     var routes = app._router.stack;
                     if (usages === 2) {
+                        buffer = null;
                         for (var i = 0; i < routes.length; i++) {
                             if (routes[i].path === genesisUrl) {
                                 routes.splice(i, 1);
@@ -272,18 +318,18 @@ var Room = function (app, doc, objectCache, cb) {
 
                 // Service replay requests
                 socket.on("replay", function () {
-                    setupMemberSnapshot(socket, snapshot.operations, genesisSeq);
+                    setupMemberSnapshot(socket, snapshot);
                 });
 
                 // Store, analyze, and broadcast incoming commits
                 socket.on("commit_ops", function (data, cb) {
                     var clientSeq = data.head,
                         ops = data.ops;
-                    if (clientSeq === serverSeq) {
+                    if (clientSeq === chunkManager.getServerSequence()) {
                         writeOpsToDocument(ops, function () {
                             cb({
                                 conflict: false,
-                                head: serverSeq
+                                head: chunkManager.getServerSequence()
                             });
                             trackCursors(ops);
                             broadcastOpsByMember(socket, data.ops);
@@ -291,6 +337,31 @@ var Room = function (app, doc, objectCache, cb) {
                     } else {
                         cb({
                             conflict: true
+                        });
+                    }
+                });
+
+                // Service save requests. A save is a commit +
+                socket.on("save", function (cb) {
+                    // Saves are blocking inside the phantomjs process, and they affect everyone,
+                    // therefore use a lock.
+                    if (saveInProgress) {
+                        var checkIfSaved = setInterval(function () {
+                            if (!saveInProgress) {
+                                clearInterval(checkIfSaved);
+                                cb();
+                            }
+                        }, 1000);
+                    } else {
+                        saveInProgress = true;
+                        recorder.getSnapshot(function (snapshot) {
+                            DocumentController.createChunkFromSnapshot(document, snapshot,
+                            function (err, chunk) {
+                                saveInProgress = false;
+                                if (err) { return cb(err); }
+                                chunkManager.appendChunk(chunk);
+                                cb();
+                            });
                         });
                     }
                 });
@@ -373,10 +444,16 @@ var Room = function (app, doc, objectCache, cb) {
         return document;
     };
 
+    this.isAvailable = function () {
+        return isAvailable;
+    };
+
     this.destroy = function (callback) {
         async.each(sockets, function (socket, cb) {
             detachSocket(socket, cb);
         }, function () {
+            //objectCache.forgetTrackedObject(chunk);
+            document.live = false;
             sockets.length = 0;
             recorder.destroy(callback);
         });
@@ -384,12 +461,12 @@ var Room = function (app, doc, objectCache, cb) {
 
     function init() {
         // Setup caching
-        document = objectCache.getTrackedObject(doc);
         DocumentChunk.findById(_.last(document.chunks), function (err, lastChunk) {
-            chunk = objectCache.getTrackedObject(lastChunk);
+            chunkManager = new ChunkManager(lastChunk);
             // Sanitize leftovers from previous session, if any
             sanitizeDocument();
-            recorder = new Recorder(chunk, function () {
+            recorder = new Recorder(chunkManager.getLastChunk(), function () {
+                isAvailable = true;
                 cb();
             });
         });

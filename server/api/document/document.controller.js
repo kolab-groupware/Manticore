@@ -14,6 +14,8 @@ var mongoose = require('mongoose');
 var Grid = require('gridfs-stream');
 var multer = require('multer');
 
+var storage = require('./storage');
+
 var DocumentChunk = require('./document.model').DocumentChunk;
 var Document = require('./document.model').Document;
 var Template = require('../template/template.model');
@@ -21,66 +23,13 @@ var Template = require('../template/template.model');
 var gfs = Grid(mongoose.connection.db, mongoose.mongo);
 
 // Get list of documents
-exports.index = function(req, res) {
-  Document.find().populate('creator').exec(function (err, documents) {
-    if(err) { return handleError(res, err); }
-    return res.json(200, documents);
-  });
-};
+exports.index = storage.index;
 
 // Get a single document
-exports.show = function(req, res) {
-  Document.findById(req.params.id, function (err, document) {
-    if(err) { return handleError(res, err); }
-    if(!document) { return res.send(404); }
-    return res.json(document);
-  });
-};
+exports.show = storage.show;
 
-exports.upload = function (req, res, next) {
-    multer({
-        upload: null,
-        limits: {
-            fileSize: 1024 * 1024 * 20, // 20 Megabytes
-            files: 5
-        },
-        onFileUploadStart: function (file) {
-            var chunkId = new mongoose.Types.ObjectId(),
-                fileId = new mongoose.Types.ObjectId();
-
-            var firstChunk = new DocumentChunk({
-                _id: chunkId,
-                fileId: fileId
-            });
-            var newDocument = new Document({
-                title: file.originalname,
-                creator: req.user._id,
-                chunks: [chunkId]
-            });
-            this.upload = gfs.createWriteStream({
-                _id: fileId,
-                filename: file.originalname,
-                mode: 'w',
-                chunkSize: 1024 * 4,
-                content_type: file.mimetype,
-                root: 'fs'
-            });
-            this.upload.on('finish', function () {
-                firstChunk.save(function (err) {
-                    if (!err) {
-                        newDocument.save();
-                    }
-                });
-            });
-        },
-        onFileUploadData: function (file, data) {
-            this.upload.write(data);
-        },
-        onFileUploadComplete: function (file) {
-            this.upload.end();
-        }
-    })(req, res, next);
-};
+// Middleware for handling file uploads
+exports.upload = storage.upload;
 
 exports.acknowledgeUpload = function (req, res) {
     return res.send(200);
@@ -105,40 +54,9 @@ exports.showSnapshot = function(req, res) {
     });
 };
 
-// Creates a new document in the DB.
-exports.create = function(req, res) {
-  Document.create(req.body, function(err, document) {
-    if(err) { return handleError(res, err); }
-    return res.json(201, document);
-  });
-};
+exports.createFromTemplate = storage.createFromTemplate;
 
-exports.createFromTemplate = function (req, res) {
-  Template.findById(req.params.id, function (err, template) {
-      if (err) { return handleError(res, err); }
-      if (!template) { return res.send(404); }
-
-      var chunkId = new mongoose.Types.ObjectId();
-
-      var firstChunk = new DocumentChunk({
-          _id: chunkId,
-          fileId: template.fileId
-      });
-      var newDocument = new Document({
-          title: template.title,
-          creator: req.user._id,
-          chunks: [chunkId]
-      });
-
-      firstChunk.save(function (err) {
-          if (!err) {
-              newDocument.save(function (err) {
-                  return res.json(201, newDocument);
-              });
-          }
-      })
-  });
-};
+exports.createChunkFromSnapshot = storage.createChunkFromSnapshot;
 
 // Updates an existing document in the DB.
 exports.update = function(req, res) {

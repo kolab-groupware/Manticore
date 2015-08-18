@@ -41,6 +41,12 @@ var all = {
     }
   },
 
+  auth: process.env.STORAGE || 'local',
+  storage: {
+      type: process.env.STORAGE || 'local',
+      server: process.env.WEBDAV_SERVER,
+      path: process.env.WEBDAV_PATH
+  }
 };
 
 // Export the config object based on the NODE_ENV

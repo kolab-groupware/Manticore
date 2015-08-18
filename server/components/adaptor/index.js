@@ -38,17 +38,33 @@ var ServerAdaptor = function (app, socketServer, objectCache) {
         var room = rooms[documentId];
 
         if (!room) {
-            Document.findById(documentId, function (err, doc) {
+            Document.findById(documentId).populate('creator', 'name email')
+            .exec(function (err, doc) {
                 if (err) { return console.log(err); }
                 if (!doc) { return console.log("documentId unknown:"+documentId); }
 
-                room = new Room(app, doc, objectCache, function () {
+                var document = objectCache.getTrackedObject(doc);
+                document.live = true;
+                rooms[documentId] = room = new Room(app, document, objectCache, function () {
                     rooms[documentId] = room;
                     room.attachSocket(socket);
                 });
+
+                var interval = setInterval(function () {
+                    if (!document.live) {
+                        clearInterval(interval);
+                        objectCache.forgetTrackedObject(document);
+                        room.destroy(function () {
+                            delete rooms[documentId];
+                        });
+                    }
+                }, 500);
             });
-        } else {
+        } else if (room.isAvailable()) {
             room.attachSocket(socket);
+        } else {
+            console.log("Room currently unavailable, disconnecting client.")
+            socket.disconnect();
         }
     }
 
