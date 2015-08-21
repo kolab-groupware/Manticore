@@ -14,16 +14,16 @@ exports.setup = function (User, config) {
                 password: password
             })),
             {
-                baseUrl: config.storage.server
+                baseUrl: config.storage.webdav.server
             }
         );
         client.send(
             dav.request.basic({ method: 'OPTIONS', data: ''}),
-            config.storage.path
+            config.storage.webdav.path
         ).then(
             function success() {
                 User.findOne({
-                    email: email.toLowerCase()
+                    email: email
                 }, function (err, user) {
                     if (err) { return done(err); }
 
@@ -33,10 +33,10 @@ exports.setup = function (User, config) {
                             email: email,
                             provider: 'webdav',
                             role: 'user',
-                            webdav: {
+                            webdav: (config.storage.type === 'webdav') ? {
                                 username: email,
                                 password: password
-                            }
+                            } : undefined
                         });
                         newUser.save(function (err, user) {
                             if (err) { return done(err); }
