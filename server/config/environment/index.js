@@ -41,11 +41,26 @@ var all = {
     }
   },
 
-  auth: process.env.STORAGE || 'local',
+  auth: {
+      type: process.env.AUTH || 'local',
+      'webdav': {
+          server: process.env.WEBDAV_SERVER,
+          path: process.env.WEBDAV_PATH
+      },
+      'ldap': {
+          server: process.env.LDAP_SERVER,
+          base: process.env.LDAP_BASE,
+          filter: process.env.LDAP_FILTER,
+          bindDn: process.env.LDAP_BIND_DN,
+          bindPw: process.env.LDAP_BIND_PW
+      }
+  },
   storage: {
       type: process.env.STORAGE || 'local',
-      server: process.env.WEBDAV_SERVER,
-      path: process.env.WEBDAV_PATH
+      'webdav': {
+          server: process.env.WEBDAV_SERVER,
+          path: process.env.WEBDAV_PATH
+      }
   }
 };
 

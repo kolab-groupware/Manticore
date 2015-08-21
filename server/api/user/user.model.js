@@ -4,12 +4,7 @@ var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 var crypto = require('crypto');
 
-var authTypes = ['webdav'];
-
-var WebDAVSchema = new Schema({
-    username: String,
-    password: String
-});
+var authTypes = ['webdav', 'ldap'];
 
 var UserSchema = new Schema({
   name: String,

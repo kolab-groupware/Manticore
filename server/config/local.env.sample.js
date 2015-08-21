@@ -14,12 +14,29 @@ module.exports = {
 
   /*
    * Supported authentication strategies.
-   * 1. 'local' for storing everything in Mongo/GridFS, auth using username/password
-   * 2. 'webdav' for linking with a WebDAV server, auth using WebDAV credentials
+   * 1. 'local' for using Manticore's built-in accounts system. Allow signups.
+   * 2. 'webdav' for authenticating against a  WebDAV server. Only login, no signups.
+   * 3. 'ldap' for authenticating against an LDAP service. Only login, no signups.
    */
-  STORAGE: 'webdav',
+  AUTH: 'local',
 
-  // More configuration for the chosen auth type. None required for 'local'
-  WEBDAV_SERVER: 'https://apps.kolabnow.com',
-  WEBDAV_PATH: '/files/Files'
+  /*
+   * Supported storage backends.
+   * 1. 'local' for storing everything in Mongo/GridFS. The fastest and most reliable way.
+   *    Can be used with any AUTH strategy.
+   * 2. 'webdav' for two-way synchronizing of documents with a WebDAV server.
+   *    Can be used if AUTH is 'ldap' or 'webdav'; those credentials are used to talk to the webdav server.
+   */
+  STORAGE: 'local',
+
+  // WebDAV server config, required iff AUTH or STORAGE is 'webdav'.
+  WEBDAV_SERVER: 'https://kolabmachine',
+  WEBDAV_PATH: '/iRony/files/Files',
+
+  // LDAP server config, required iff AUTH is 'ldap'. {{username}} will be replaced with users' logins
+  LDAP_SERVER: 'ldaps://kolabmachine',
+  LDAP_BASE: 'ou=People,dc=test,dc=example,dc=org',
+  LDAP_FILTER: '(&(objectclass=person)(|(uid={{username}})(mail={{username}})))',
+  LDAP_BIND_DN: 'uid=kolab-service,ou=Special Users,dc=test,dc=example,dc=org',
+  LDAP_BIND_PW: 'kolab-service-pass'
 };

@@ -22,6 +22,9 @@ var Template = require('../../../template/template.model');
 
 var gfs = Grid(mongoose.connection.db, mongoose.mongo);
 
+var serverUrl = config.storage.webdav.server,
+    serverPath = config.storage.webdav.path;
+
 function makeDavClient (user) {
     return new dav.Client(
         new dav.transport.Basic(new dav.Credentials({
@@ -29,7 +32,7 @@ function makeDavClient (user) {
             password: user.webdav.password
         })),
         {
-            baseUrl: config.storage.server
+            baseUrl: serverUrl
         }
     );
 }
@@ -45,7 +48,7 @@ function saveToGridFS(user, href, fileId, cb) {
     });
 
     request.get({
-        url: config.storage.server + href,
+        url: serverUrl + href,
         auth: {
             user: user.webdav.username,
             pass: user.webdav.password,
@@ -155,7 +158,7 @@ exports.index = function (req, res) {
             { name: 'getetag', namespace: dav.ns.DAV },
             { name: 'getlastmodified', namespace: dav.ns.DAV }
         ]
-    }), config.storage.path)
+    }), serverPath)
     .then(
     function success(response) {
         var webdavDocuments = _(response)
@@ -289,7 +292,7 @@ function uploadToServer(user, readStream, href, replace, cb) {
     }
 
     if (replace) {
-        nonConflictingPath = config.storage.server + href;
+        nonConflictingPath = serverUrl + href;
         upload();
     } else {
         makeDavClient(user).send(dav.request.propfind({
@@ -328,7 +331,7 @@ function uploadToServer(user, readStream, href, replace, cb) {
                 }
             }
 
-            nonConflictingPath = config.storage.server + makePath(dirname, basename_i, extension);
+            nonConflictingPath = serverUrl + makePath(dirname, basename_i, extension);
             upload();
         },
         function failure(err) {
@@ -347,7 +350,7 @@ exports.upload = function (req, res, next) {
         onFileUploadComplete: function (file) {
             uploadToServer(req.user,
                 fs.createReadStream(file.path),
-                config.storage.path + '/' + file.originalname,
+                serverPath + '/' + file.originalname,
                 false,
                 function (err) {
                     if (err) { console.log (err); }
@@ -379,7 +382,7 @@ exports.createFromTemplate = function (req, res) {
       uploadToServer(
           req.user,
           gfs.createReadStream({ _id: template.fileId }),
-          config.storage.path + '/' + template.title + '.odt',
+          serverPath + '/' + template.title + '.odt',
           false,
           function (err, response) {
               if (err) { return handleError(res.err); }
