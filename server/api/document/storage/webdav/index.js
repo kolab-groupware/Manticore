@@ -12,6 +12,7 @@ var Grid = require('gridfs-stream');
 var multer = require('multer');
 var request = require('request');
 var querystring = require('querystring');
+var crypto = require('crypto');
 
 var config = require('../../../../config/environment');
 
@@ -25,11 +26,16 @@ var gfs = Grid(mongoose.connection.db, mongoose.mongo);
 var serverUrl = config.storage.webdav.server,
     serverPath = config.storage.webdav.path;
 
+function decrypt(password) {
+    var decipher = crypto.createDecipher('aes-256-cbc', config.storage.webdav.key);
+    return decipher.update(password, 'base64', 'utf8') + decipher.final('utf8');
+}
+
 function makeDavClient (user) {
     return new dav.Client(
         new dav.transport.Basic(new dav.Credentials({
             username: user.webdav.username,
-            password: user.webdav.password
+            password: decrypt(user.webdav.password)
         })),
         {
             baseUrl: serverUrl
@@ -51,7 +57,7 @@ function saveToGridFS(user, href, fileId, cb) {
         url: serverUrl + href,
         auth: {
             user: user.webdav.username,
-            pass: user.webdav.password,
+            pass: decrypt(user.webdav.password)
         }
     })
     .on('error', function (err) {
@@ -283,7 +289,7 @@ function uploadToServer(user, readStream, href, replace, cb) {
             url: nonConflictingPath,
             auth: {
                 user: user.webdav.username,
-                pass: user.webdav.password,
+                pass: decrypt(user.webdav.password)
             },
             headers: {
                 'Content-Type': 'application/vnd.oasis.opendocument.text'
