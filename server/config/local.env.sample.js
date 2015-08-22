@@ -29,9 +29,13 @@ module.exports = {
    */
   STORAGE: 'local',
 
-  // WebDAV server config, required iff AUTH or STORAGE is 'webdav'.
+  /*
+   * WebDAV server config, only if AUTH or STORAGE is 'webdav'.
+   * Make sure you provide an encryption key to protect users' webdav credentials.
+   */
   WEBDAV_SERVER: 'https://kolabmachine',
   WEBDAV_PATH: '/iRony/files/Files',
+  WEBDAV_CREDENTIALS_KEY: 'suchweb123muchdav456',
 
   // LDAP server config, required iff AUTH is 'ldap'. {{username}} will be replaced with users' logins
   LDAP_SERVER: 'ldaps://kolabmachine',

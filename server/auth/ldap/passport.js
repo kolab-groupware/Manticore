@@ -1,23 +1,29 @@
 var passport = require('passport');
 var LdapStrategy = require('passport-ldapauth');
+var crypto = require('crypto');
 
 exports.setup = function (User, config) {
-  passport.use(new LdapStrategy({
-      server: {
-          url: config.auth.ldap.server,
-          searchBase: config.auth.ldap.base,
-          searchFilter: config.auth.ldap.filter,
-          bindDn: config.auth.ldap.bindDn,
-          bindCredentials: config.auth.ldap.bindPw,
-          searchAttributes: ['cn']
-      },
-      usernameField: 'email',
-      passwordField: 'password',
-      passReqToCallback: true,
-      badRequestMessage: true,
-      invalidCredentials: true,
-      userNotFound: true,
-      constraintViolation: true
+    function encrypt(password) {
+        var cipher = crypto.createCipher('aes-256-cbc', config.storage.webdav.key);
+        return cipher.update(password, 'utf8', 'base64') + cipher.final('base64')
+    }
+
+    passport.use(new LdapStrategy({
+        server: {
+            url: config.auth.ldap.server,
+            searchBase: config.auth.ldap.base,
+            searchFilter: config.auth.ldap.filter,
+            bindDn: config.auth.ldap.bindDn,
+            bindCredentials: config.auth.ldap.bindPw,
+            searchAttributes: ['cn']
+        },
+        usernameField: 'email',
+        passwordField: 'password',
+        passReqToCallback: true,
+        badRequestMessage: true,
+        invalidCredentials: true,
+        userNotFound: true,
+        constraintViolation: true
     },
     function(req, ldapUser, done) {
         var email = req.body.email,
@@ -37,7 +43,7 @@ exports.setup = function (User, config) {
                     role: 'user',
                     webdav: (config.storage.type === 'webdav') ? {
                         username: email,
-                        password: password
+                        password: encrypt(password)
                     } : undefined
                 });
                 newUser.save(function (err, user) {
