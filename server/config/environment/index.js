@@ -45,7 +45,8 @@ var all = {
       type: process.env.AUTH || 'local',
       'webdav': {
           server: process.env.WEBDAV_SERVER,
-          path: process.env.WEBDAV_PATH
+          path: process.env.WEBDAV_PATH,
+          key: process.env.WEBDAV_ENCRYPTION_KEY
       },
       'ldap': {
           server: process.env.LDAP_SERVER,
@@ -59,7 +60,8 @@ var all = {
       type: process.env.STORAGE || 'local',
       'webdav': {
           server: process.env.WEBDAV_SERVER,
-          path: process.env.WEBDAV_PATH
+          path: process.env.WEBDAV_PATH,
+          key: process.env.WEBDAV_ENCRYPTION_KEY
       }
   }
 };
