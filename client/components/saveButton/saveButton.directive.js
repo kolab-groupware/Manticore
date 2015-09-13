@@ -5,6 +5,7 @@ angular.module('manticoreApp')
     return {
       templateUrl: 'components/saveButton/saveButton.html',
       restrict: 'E',
-      controller: 'SaveButtonCtrl'
+      controller: 'SaveButtonCtrl',
+      scope: true
     };
   });

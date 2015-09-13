@@ -42,5 +42,8 @@ module.exports = {
   LDAP_BASE: 'ou=People,dc=test,dc=example,dc=org',
   LDAP_FILTER: '(&(objectclass=person)(|(uid={{username}})(mail={{username}})))',
   LDAP_BIND_DN: 'uid=kolab-service,ou=Special Users,dc=test,dc=example,dc=org',
-  LDAP_BIND_PW: 'kolab-service-pass'
+  LDAP_BIND_PW: 'kolab-service-pass',
+
+  // locodoc (document format conversion) server
+  LOCODOC_SERVER: 'http://localhost:3030'
 };

@@ -22,7 +22,7 @@ angular.module('manticoreApp')
             $timeout(function () {
                 $scope.label = 'Save';
                 $scope.isSaving = false;
-            }, 5000);
+            }, 1000);
         });
     };
 });

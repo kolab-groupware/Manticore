@@ -3,17 +3,17 @@
 angular.module('manticoreApp')
   .config(function ($stateProvider) {
     $stateProvider
-      .state('login', {
+      .state('manticore.login', {
         url: '/login',
         templateUrl: 'app/account/login/login.html',
         controller: 'LoginCtrl'
       })
-      .state('signup', {
+      .state('manticore.signup', {
         url: '/signup',
         templateUrl: 'app/account/signup/signup.html',
         controller: 'SignupCtrl'
       })
-      .state('settings', {
+      .state('manticore.settings', {
         url: '/settings',
         templateUrl: 'app/account/settings/settings.html',
         controller: 'SettingsCtrl',

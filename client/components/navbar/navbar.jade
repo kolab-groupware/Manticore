@@ -6,15 +6,15 @@ div.navbar.navbar-default.navbar-static-top(ng-controller='NavbarCtrl')
         span.icon-bar
         span.icon-bar
         span.icon-bar
-      a.nav-text.navbar-brand(href='/') manticore
+      a.nav-text.navbar-brand(ui-sref='manticore.main') manticore
 
     div#navbar-main.navbar-collapse.collapse(collapse='isCollapsed')
       ul.nav.navbar-nav
         li(ng-show='isAdmin()', ng-class='{active: isActive("/users")}')
-          a.nav-text(ui-sref='users') Users
+          a.nav-text(ui-sref='manticore.users') Users
 
         li(ng-show='isAdmin()', ng-class='{active: isActive("/templates")}')
-          a.nav-text(ui-sref='templates') Templates
+          a.nav-text(ui-sref='manticore.templates') Templates
 
         li.dropdown(ng-if='isLoggedIn() && isActive("/")' dropdown)
           a.nav-text.dropdown-toggle(href='#' dropdown-toggle role='button')

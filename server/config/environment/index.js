@@ -41,6 +41,8 @@ var all = {
     }
   },
 
+  conversionHost: process.env.LOCODOC_SERVER,
+
   auth: {
       type: process.env.AUTH || 'local',
       'webdav': {

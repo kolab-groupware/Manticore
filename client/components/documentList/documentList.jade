@@ -11,6 +11,6 @@
             tbody
                 tr(ng-repeat='document in displayedDocuments')
                     td.title
-                        a(ui-sref='editor.forDocument({id: document._id})' target='_blank') {{document.title}}
+                        a(ui-sref='manticore.editor.forDocument({id: document._id})' target='_blank') {{document.title}}
                     td {{document.creator.name}}
                     td {{document.date | amCalendar}}

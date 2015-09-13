@@ -12,10 +12,10 @@ angular.module('manticoreApp', [
   'angularMoment',
   'angularLoad'
 ])
-  .config(function ($stateProvider, $urlRouterProvider, $locationProvider, $httpProvider) {
+  .config(function ($stateProvider, $urlRouterProvider, $urlMatcherFactoryProvider, $locationProvider, $httpProvider) {
     $urlRouterProvider
       .otherwise('/');
-
+    $urlMatcherFactoryProvider.strictMode(false);
     $locationProvider.html5Mode(true);
     $httpProvider.interceptors.push('authInterceptor');
   })

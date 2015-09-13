@@ -1,6 +1,6 @@
 ul.dropdown-menu.create-menu
     li(ng-repeat='template in templates')
-        a(ui-sref='editor.fromTemplate({ id: template._id })' target='_blank')
+        a(ui-sref='manticore.editor.fromTemplate({ id: template._id })' target='_blank')
             span.text-strong {{template.title}}
             br
             div.text-muted {{template.description}}

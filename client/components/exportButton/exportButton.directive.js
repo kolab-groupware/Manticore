@@ -5,6 +5,7 @@ angular.module('manticoreApp')
     return {
       templateUrl: 'components/exportButton/exportButton.html',
       restrict: 'E',
-      controller: 'ExportButtonCtrl'
+      controller: 'ExportButtonCtrl',
+      scope: true
     };
   });
