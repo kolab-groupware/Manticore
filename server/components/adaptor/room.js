@@ -313,7 +313,8 @@ var Room = function (app, document, objectCache, cb) {
 
                 socket.emit("join_success", {
                     memberId: memberId,
-                    genesisUrl: genesisUrl
+                    genesisUrl: genesisUrl,
+                    permission: document.getAccessType(socket.user.email)
                 });
 
                 // Service replay requests

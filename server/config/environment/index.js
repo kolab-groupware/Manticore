@@ -41,6 +41,7 @@ var all = {
     }
   },
 
+  defaultAccess: process.env.DEFAULT_ACCESS,
   conversionHost: process.env.LOCODOC_SERVER,
 
   auth: {
@@ -48,14 +49,15 @@ var all = {
       'webdav': {
           server: process.env.WEBDAV_SERVER,
           path: process.env.WEBDAV_PATH,
-          key: process.env.WEBDAV_ENCRYPTION_KEY
+          key: process.env.AUTH_ENCRYPTION_KEY
       },
       'ldap': {
           server: process.env.LDAP_SERVER,
           base: process.env.LDAP_BASE,
           filter: process.env.LDAP_FILTER,
           bindDn: process.env.LDAP_BIND_DN,
-          bindPw: process.env.LDAP_BIND_PW
+          bindPw: process.env.LDAP_BIND_PW,
+          key: process.env.AUTH_ENCRYPTION_KEY
       }
   },
   storage: {
@@ -63,7 +65,10 @@ var all = {
       'webdav': {
           server: process.env.WEBDAV_SERVER,
           path: process.env.WEBDAV_PATH,
-          key: process.env.WEBDAV_ENCRYPTION_KEY
+          key: process.env.AUTH_ENCRYPTION_KEY
+      },
+      'chwala': {
+        server: process.env.CHWALA_SERVER
       }
   }
 };

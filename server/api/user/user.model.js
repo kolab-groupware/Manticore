@@ -16,6 +16,7 @@ var UserSchema = new Schema({
   hashedPassword: String,
   provider: String,
   webdav: {},
+  ldap: {},
   salt: String
 });
 

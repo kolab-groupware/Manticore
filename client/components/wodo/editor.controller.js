@@ -8,7 +8,9 @@ angular.module('manticoreApp')
         clientAdaptor,
         editorOptions = {
             collabEditingEnabled: true,
-            allFeaturesEnabled: true
+            unstableFeaturesEnabled: true,
+            imageEditingEnabled: false,
+            hyperlinkEditingEnabled: false
         },
         onConnectCalled = false;
 
@@ -29,7 +31,14 @@ angular.module('manticoreApp')
         closeEditing();
     }
 
-    function openEditor() {
+    function openEditor(permission) {
+        if (permission === 'write') {
+          editorOptions.allFeaturesEnabled = true;
+          editorOptions.reviewModeEnabled = false;
+        } else {
+          editorOptions.reviewModeEnabled = true;
+        }
+
         Wodo.createCollabTextEditor('wodoContainer', editorOptions, function (err, editor) {
             editorInstance = editor;
             $scope.editor = editor;
@@ -55,12 +64,12 @@ angular.module('manticoreApp')
                 }
                 onConnectCalled = true;
 
-                clientAdaptor.joinSession(function (memberId) {
+                clientAdaptor.joinSession(function (memberId, permission) {
                     if (!memberId) {
                         console.log('Could not join; memberId not received');
                     } else {
                         console.log('Joined with memberId ' + memberId);
-                        openEditor();
+                        openEditor(permission);
                     }
                 });
             },

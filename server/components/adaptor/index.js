@@ -43,6 +43,10 @@ var ServerAdaptor = function (app, socketServer, objectCache) {
                 if (err) { return console.log(err); }
                 if (!doc) { return console.log("documentId unknown:"+documentId); }
 
+                if (doc.getAccessType(socket.user.email) === 'deny') {
+                  return console.log("Access denied.");
+                }
+
                 var document = objectCache.getTrackedObject(doc);
                 document.live = true;
                 rooms[documentId] = room = new Room(app, document, objectCache, function () {
@@ -61,6 +65,10 @@ var ServerAdaptor = function (app, socketServer, objectCache) {
                 }, 500);
             });
         } else if (room.isAvailable()) {
+            var document = objectCache.getTrackedObject({ _id: documentId });
+            if (document.getAccessType(socket.user.email) === 'deny') {
+              return console.log("Access denied.");
+            }
             room.attachSocket(socket);
         } else {
             console.log("Room currently unavailable, disconnecting client.")
@@ -85,7 +93,7 @@ var ServerAdaptor = function (app, socketServer, objectCache) {
                 socket.on("join", function (data) {
                     var documentId = data.documentId;
                     if (documentId) {
-                        console.log("Authorized user " + user.name + " for document " + documentId);
+                        console.log("Request by user " + user.name + " for document " + documentId);
                         addToRoom(documentId, socket);
                     } else {
                         console.log("Error: Client did not specify a document ID");

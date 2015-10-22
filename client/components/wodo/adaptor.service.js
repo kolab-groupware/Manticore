@@ -261,7 +261,7 @@ angular.module('manticoreApp')
                 socket.removeListener('join_success', handleJoinSuccess);
                 memberId = data.memberId;
                 genesisUrl = data.genesisUrl;
-                cb(memberId);
+                cb(memberId, data.permission);
             });
             socket.emit('join', {
                 documentId: documentId
