@@ -12,20 +12,31 @@ angular.module('manticoreApp')
       /**
        * Authenticate user and save token
        *
-       * @param  {Object}   user     - login info
-       * @param  {Function} callback - optional
+       * @param  {Object}   credentials   - login info. Either token string, or email/password object
+       * @param  {Function} callback      - optional
        * @return {Promise}
        */
-      login: function(user, callback) {
+      login: function(credentials, callback) {
         var cb = callback || angular.noop;
         var deferred = $q.defer();
+        var request;
 
-        $http.post('/auth/local', {
-          email: user.email,
-          password: user.password
-        }).
+        if (typeof credentials === 'string') { // User is a token string
+          request = $http.get('/api/users/me', {
+            headers: {
+              'Authorization': 'Bearer ' + credentials,
+            }
+          });
+        } else {
+          request = $http.post('/auth/local', {
+            email: credentials.email,
+            password: credentials.password
+          });
+        }
+
+        request.
         success(function(data) {
-          $cookieStore.put('token', data.token);
+          $cookieStore.put('token', data.token || credentials);
           currentUser = User.get();
           deferred.resolve(data);
           return cb();

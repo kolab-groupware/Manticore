@@ -5,7 +5,10 @@ angular.module('manticoreApp')
     $scope.label = 'Save';
     $scope.isSaving = false;
 
-    $scope.save = function () {
+    /**
+     * @param {Function=} cb Optional callback that provides success value (true/false)
+     */
+    $scope.save = function (cb) {
         $scope.label = 'Saving';
         $scope.isSaving = true;
 
@@ -14,8 +17,10 @@ angular.module('manticoreApp')
             $timeout(function () {
                 if (err) {
                     $scope.label = 'Error while saving';
+                    if (cb) { cb(false); }
                 } else {
                     $scope.label = 'Saved just now';
+                    if (cb) { cb(true); }
                 }
             });
 
@@ -25,4 +30,22 @@ angular.module('manticoreApp')
             }, 1000);
         });
     };
+
+    function iframeActionSave(event) {
+      $scope.save(function (successful) {
+        event.source.postMessage({
+          id: event.data.id,
+          successful: successful
+        }, event.origin);
+      });
+    }
+
+    $scope.$watch('joined', function (online) {
+        if (online === undefined) { return; }
+        if (online) {
+            $scope.editor.addIframeEventListener('actionSave', iframeActionSave);
+        } else {
+            $scope.editor.removeIframeEventListener('actionSave', iframeActionSave);
+        }
+    });
 });

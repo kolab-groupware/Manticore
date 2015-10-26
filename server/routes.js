@@ -17,9 +17,8 @@ module.exports = function(app) {
   app.use('/auth', require('./auth'));
 
   app.get('/config', function (req, res) {
-    res.json(200, {
-        conversionHost: config.conversionHost
-    });
+    var configObject;
+    res.json(200, config.client);
   });
 
   // All undefined asset or api routes should return a 404

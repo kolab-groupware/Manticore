@@ -9,6 +9,10 @@ angular.module('manticoreApp')
         if (title !== undefined && title !== $scope.title) {
             $timeout(function () {
                 $scope.title = title;
+                $scope.editor.broadcastIframeEvent({
+                  name: 'titleChanged',
+                  value: title
+                });
             });
         }
     }
@@ -27,12 +31,35 @@ angular.module('manticoreApp')
         }
     };
 
+    function iframeGetTitle(event) {
+      event.source.postMessage({
+        id: event.data.id,
+        value: $scope.title
+      }, event.origin);
+    }
+
+    function iframeSetTitle(event) {
+      $scope.title = event.data.value;
+      $scope.changeTitle();
+      $timeout(function () {
+        event.source.postMessage({
+          id: event.data.id,
+          successful: true
+        }, event.origin);
+      });
+    }
+
     $scope.$watch('joined', function (online) {
         if (online === undefined) { return; }
         if (online) {
             $scope.editor.addEventListener(Wodo.EVENT_METADATACHANGED, handleTitleChanged);
+            $scope.editor.addIframeEventListener('getTitle', iframeGetTitle);
+            $scope.editor.addIframeEventListener('setTitle', iframeSetTitle);
         } else {
             $scope.editor.removeEventListener(Wodo.EVENT_METADATACHANGED, handleTitleChanged);
+            $scope.editor.removeIframeEventListener('getTitle', iframeGetTitle);
+            $scope.editor.removeIframeEventListener('setTitle', iframeSetTitle);
+
         }
     });
 

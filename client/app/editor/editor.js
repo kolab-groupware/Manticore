@@ -10,12 +10,19 @@ angular.module('manticoreApp')
         template: '<ui-view/>'
       })
       .state('manticore.editor.forDocument', {
-        url: '/:id',
+        url: '/:id/:authToken',
         resolve: {
+            user: function ($stateParams, $state, Auth) {
+              if ($stateParams.authToken === 'new') {
+                $state.go('manticore.editor.fromTemplate', { id: $stateParams.id });
+              } else if ($stateParams.authToken) {
+                return Auth.login($stateParams.authToken);
+              }
+            },
             socketio: function (angularLoad) {
                 return angularLoad.loadScript('socket.io/socket.io.js');
             },
-            document: function ($stateParams, $http) {
+            document: function ($stateParams, user, $http) {
                 return $http.get('/api/documents/' + $stateParams.id)
                 .then(function(response) {
                     return response.data;

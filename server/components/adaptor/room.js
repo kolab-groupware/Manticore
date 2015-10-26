@@ -246,6 +246,7 @@ var Room = function (app, document, objectCache, cb) {
             timestamp: timestamp,
             setProperties: {
                 fullName: user.name,
+                email: user.email,
                 color: color
             }
         };

@@ -36,7 +36,9 @@ angular.module('manticoreApp')
             unsyncedClientOpSpecQueue = [],
             operationTransformer = new ops.OperationTransformer(),
 
-            /**@const*/sendClientOpspecsDelay = 300;
+            /**@const*/sendClientOpspecsDelay = 300,
+
+            members = [];
 
 
         function playbackOpspecs(opspecs) {
@@ -54,6 +56,25 @@ angular.module('manticoreApp')
                         eventNotifier.emit(ops.OperationRouter.signalProcessingBatchEnd, {});
                         errorCb('opExecutionFailure');
                         return;
+                    } else {
+                        var spec = op.spec();
+                        if (spec.optype === 'AddMember') {
+                            var data = {
+                                memberId: spec.memberid,
+                                fullName: spec.setProperties.fullName,
+                                email: spec.setProperties.email,
+                                color: spec.setProperties.color
+                            };
+                            members.push(data);
+                            eventNotifier.emit(EVENT_MEMBERADDED, data);
+                        } else if (spec.optype === 'RemoveMember') {
+                            _.remove(members, function (member) {
+                                return member.memberId === spec.memberid;
+                            });
+                            eventNotifier.emit(EVENT_MEMBERREMOVED, {
+                                memberId: spec.memberid
+                            });
+                        }
                     }
                 } else {
                     eventNotifier.emit(ops.OperationRouter.signalProcessingBatchEnd, {});
@@ -206,6 +227,10 @@ angular.module('manticoreApp')
             return hasSessionHostConnection;
         };
 
+        this.getMembers = function () {
+          return members;
+        };
+
         function init() {
             var replayed = false,
                 followupHead,
@@ -241,7 +266,8 @@ angular.module('manticoreApp')
         var self = this,
             memberId,
             genesisUrl,
-            socket;
+            socket,
+            router;
 
         this.getMemberId = function () {
             return memberId;
@@ -253,7 +279,12 @@ angular.module('manticoreApp')
 
         this.createOperationRouter = function (odfContainer, errorCb) {
             runtime.assert(Boolean(memberId), 'You must be connected to a session before creating an operation router');
-            return new OperationRouter(socket, odfContainer, errorCb);
+            router = new OperationRouter(socket, odfContainer, errorCb);
+            return router;
+        };
+
+        this.getOperationRouter = function () {
+            return router;
         };
 
         this.joinSession = function (cb) {

@@ -42,7 +42,11 @@ var all = {
   },
 
   defaultAccess: process.env.DEFAULT_ACCESS,
-  conversionHost: process.env.LOCODOC_SERVER,
+
+  client: {
+    conversionHost: process.env.LOCODOC_SERVER,
+    embedderHost: (process.env.STORAGE === 'chwala' && process.env.ROUNDCUBE_SERVER) || undefined
+  },
 
   auth: {
       type: process.env.AUTH || 'local',

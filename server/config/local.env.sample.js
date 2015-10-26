@@ -21,7 +21,7 @@ module.exports = {
    * If completely outsourcing access control to a third party service (like Kolab), set it to 'deny'.
    * If left blank, defaults to 'deny'.
    */
-  DEFAULT_ACCESS: 'deny',
+  DEFAULT_ACCESS: 'allow',
 
   /*
    * Supported authentication strategies.
@@ -47,7 +47,13 @@ module.exports = {
   WEBDAV_SERVER: 'https://demo.owncloud.org',
   WEBDAV_PATH: '/remote.php/webdav',
 
+  /*
+   * When using Chwala storage, it is expected that Manticore will be embedded within Roundcube,
+   * so make sure you provide the host for the Roundcube server. This is intended for safe
+   * cross-origin communication.
+   */
   CHWALA_SERVER: 'http://172.17.0.12',
+  ROUNDCUBE_SERVER: 'http://172.17.0.12',
 
   /*
    * Make sure you provide an encryption key to protect users' auth credentials.
