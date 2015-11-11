@@ -7,7 +7,7 @@ Realtime collaboration for rich office documents.
 ## Setup
 
 1. Install [MongoDB](https://www.mongodb.org/) via your package manager.
-2. `npm install -g bower grunt-cli`
+2. `npm install -g bower grunt-cli phantomjs`
 3. Get server dependencies: `npm install`
 4. Get client dependencies: `bower install`
 
