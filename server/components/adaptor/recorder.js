@@ -5,7 +5,8 @@ var config = require('../../config/environment');
 
 var Recorder = function (lastChunk, cb) {
     var self = this,
-        baseSnapshotUrl = 'http://' + (config.ip || 'localhost') + ':' + config.port + '/api/documents/snapshot/' + lastChunk.snapshot.fileId,
+        manticoreHost = 'http://' + (config.ip || 'localhost') + ':' + config.port,
+        baseSnapshotUrl = manticoreHost + '/api/documents/snapshot/' + lastChunk.snapshot.fileId,
         emitter = new EventEmitter(),
         snapshotReadyCb = function () {},
         ph,
@@ -123,7 +124,7 @@ var Recorder = function (lastChunk, cb) {
         phantom.create('--web-security=no', function (instance) {
             ph = instance;
             ph.createPage(function (p) {
-                p.open('file://' + __dirname + '/odf.html', function (status) {
+                p.open('file://' + __dirname + '/odf.html?host=' + manticoreHost, function (status) {
                     if (status === 'success') {
                         page = p;
                         page.set('onCallback', phantomCallback);

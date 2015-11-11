@@ -17,7 +17,21 @@
       background: black;
     }
   </style>
-  <script src="../../../client/bower_components/wodo/wodo/webodf.js" type="text/javascript" charset="utf-8"></script>
+  <script>
+    function getParameterByName(name) {
+      name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+      var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+      results = regex.exec(location.search);
+      return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+    }
+
+    var webodfUrl = getParameterByName('host') + '/bower_components/wodo/wodo/webodf.js';
+    var script = document.createElement('script');
+    script.type = 'text/javascript';
+    script.async = false;
+    script.src = webodfUrl;
+    document.head.appendChild(script);
+  </script>
   <title></title>
 </head>
 
