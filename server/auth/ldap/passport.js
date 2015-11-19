@@ -44,6 +44,10 @@ exports.setup = function (User, config) {
                     webdav: (config.storage.type === 'webdav') ? {
                         username: email,
                         password: encrypt(password)
+                    } : undefined,
+                    ldap: (config.storage.type === 'chwala') ? {
+                        username: email,
+                        password: encrypt(password)
                     } : undefined
                 });
                 newUser.save(function (err, user) {

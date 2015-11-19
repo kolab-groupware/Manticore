@@ -1,4 +1,4 @@
 div.save-button
-    button.btn.btn-primary(type='button' ng-click='save()' ng-disabled='isSaving')
+    button.btn.btn-primary(type='button' ng-click='save()' ng-disabled='isSaving || !isModified')
         i.fa(ng-class='isSaving ? "fa-spin fa-circle-o-notch": "fa-cloud-upload"')
         |  {{label}}

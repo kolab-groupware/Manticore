@@ -1,9 +1,12 @@
 'use strict';
 
-var mongoose = require('mongoose'),
+var _ = require('lodash'),
+    mongoose = require('mongoose'),
     Schema = mongoose.Schema;
 
-var storageTypes = ['webdav'];
+var config = require('../../config/environment');
+
+var storageTypes = ['webdav', 'chwala'];
 
 /*
  * Each DocumentChunk has an associated ODF snapshot file within
@@ -22,6 +25,7 @@ var DocumentChunk = new Schema({
 });
 
 var DocumentSchema = new Schema({
+  _id:      { type: Schema.Types.String, default: mongoose.Types.ObjectId, unique: true },
   title:    String,
   created:  { type: Date, default: Date.now, required: true },
   date:     { type: Date, default: Date.now },
@@ -30,8 +34,27 @@ var DocumentSchema = new Schema({
   chunks:   { type: [{type: Schema.Types.ObjectId, ref: 'DocumentChunk'}], default: [] },
   live:     { type: Boolean, default: false },
   provider: String,
-  webdav:   {}
+  webdav:   {},
+  chwala:   {},
+  access:   { type: [{ identity: String, permission: { type: String, enum: ['read', 'write', 'deny' ]}}], default: [] }
 });
+
+DocumentSchema.methods = {
+  /** Potentially unsafe */
+  getAccessType: function (identity) {
+    return _.result(_.find(this.access, function (accessItem) {
+      return _.isEqual(accessItem.identity, identity);
+    }), 'permission') || config.defaultAccess || 'deny';
+  }
+};
+
+// DocumentSchema
+//   .path('access')
+//   .validate(function(access) {
+//     return _.find(this.access, function (accessItem) {
+//       return _.includes(['read, write', 'deny']permission !== 'read'
+//     });
+//   }, 'Invalid access control info');
 
 module.exports = {
     DocumentChunk: mongoose.model('DocumentChunk', DocumentChunk),

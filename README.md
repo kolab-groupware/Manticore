@@ -1,5 +1,3 @@
-_This is totally not ready yet. Not even pre-alpha. Only boilerplate scaffolding. Don't look!_
-
 # Manticore
 
 Realtime collaboration for rich office documents.
@@ -7,9 +5,11 @@ Realtime collaboration for rich office documents.
 ## Setup
 
 1. Install [MongoDB](https://www.mongodb.org/) via your package manager.
-2. `npm install -g bower grunt-cli`
+2. `npm install -g bower grunt-cli phantomjs`
 3. Get server dependencies: `npm install`
 4. Get client dependencies: `bower install`
+
+Optionally, run a [locodoc](https://github.com/adityab/locodoc) server for the ability to export to other document formats (`pdf`, `doc`, `docx`, `txt`).
 
 ## Run
 

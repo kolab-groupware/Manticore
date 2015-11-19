@@ -19,7 +19,11 @@ angular.module('manticoreApp')
         ]);
     }
 
-    $scope.export = function (format) {
+    /**
+     * @param {!string} format
+     * @param {Function=} cb Optional callback that provides success value (true/false)
+     */
+    $scope.export = function (format, cb) {
         $scope.label = 'Downloading...';
         $scope.isExporting = true;
 
@@ -35,6 +39,7 @@ angular.module('manticoreApp')
                 );
                 $scope.label = 'Download';
                 $scope.isExporting = false;
+                if (cb) { cb(true); }
             } else {
                 var formData = new FormData();
                 formData.append('document', new Blob([data.buffer], { type: 'application/vnd.oasis.opendocument.text' }));
@@ -56,11 +61,13 @@ angular.module('manticoreApp')
                     $timeout(function () {
                         $scope.label = 'Download';
                         $scope.isExporting = false;
+                        if (cb) { cb(true); }
                     });
                 })
                 .error(function () {
                     $timeout(function () {
                         $scope.label = 'Error while downloading';
+                        if (cb) { cb(false); }
                     });
                     $timeout(function () {
                         $scope.label = 'Download';
@@ -70,4 +77,31 @@ angular.module('manticoreApp')
             }
         });
     };
+
+    function iframeGetExportFormats(event) {
+      event.source.postMessage({
+        id: event.data.id,
+        value: angular.copy($scope.items)
+      }, event.origin);
+    }
+
+    function iframeActionExport(event) {
+      $scope.export(event.data.value, function (successful) {
+        event.source.postMessage({
+          id: event.data.id,
+          successful: successful
+        }, event.origin);
+      });
+    }
+
+    $scope.$watch('joined', function (online) {
+        if (online === undefined) { return; }
+        if (online) {
+            $scope.editor.addIframeEventListener('getExportFormats', iframeGetExportFormats);
+            $scope.editor.addIframeEventListener('actionExport', iframeActionExport);
+        } else {
+            $scope.editor.removeIframeEventListener('getExportFormats', iframeGetExportFormats);
+            $scope.editor.removeIframeEventListener('actionExport', iframeActionExport);
+        }
+    });
 });

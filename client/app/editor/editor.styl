@@ -1,17 +1,25 @@
 .toolbar
     border none
+    border-bottom 1px solid lightgray
     background-color white
     height 50px
+.toolbar[embedded=true]
+    display none
 
 .toolbar-item
     display inline-block
     height 50px
     float left
 
-#wodoContainer
-    width 100%
-    height calc(100% - 50px)
-    top 50px
-    padding 0
-    position absolute
-    background-color white
+.wodo
+  #wodoContainer
+      width 100%
+      height calc(100% - 50px)
+      top 50px
+      padding 0
+      position absolute
+      background-color white
+  &[embedded=true]
+      #wodoContainer
+          height: 100%
+          top: 0

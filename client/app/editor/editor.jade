@@ -1,4 +1,4 @@
-div.toolbar
+div.toolbar(ng-attr-embedded='{{$root.config.embedderHost !== undefined}}')
     div.toolbar-item.title
       title-editor
     div.toolbar-item
@@ -6,4 +6,4 @@ div.toolbar
     div.toolbar-item
       save-button
 
-wodo-editor.wodo
+wodo-editor.wodo(ng-attr-embedded='{{$root.config.embedderHost !== undefined}}')

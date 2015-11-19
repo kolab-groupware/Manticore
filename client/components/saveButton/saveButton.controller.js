@@ -4,8 +4,12 @@ angular.module('manticoreApp')
 .controller('SaveButtonCtrl', function ($scope, $timeout) {
     $scope.label = 'Save';
     $scope.isSaving = false;
+    $scope.isModified = false;
 
-    $scope.save = function () {
+    /**
+     * @param {Function=} cb Optional callback that provides success value (true/false)
+     */
+    $scope.save = function (cb) {
         $scope.label = 'Saving';
         $scope.isSaving = true;
 
@@ -14,8 +18,11 @@ angular.module('manticoreApp')
             $timeout(function () {
                 if (err) {
                     $scope.label = 'Error while saving';
+                    if (cb) { cb(false); }
                 } else {
                     $scope.label = 'Saved just now';
+                    $scope.isModified = false;
+                    if (cb) { cb(true); }
                 }
             });
 
@@ -25,4 +32,31 @@ angular.module('manticoreApp')
             }, 1000);
         });
     };
+
+    function iframeActionSave(event) {
+      $scope.save(function (successful) {
+        event.source.postMessage({
+          id: event.data.id,
+          successful: successful
+        }, event.origin);
+      });
+    }
+
+    function handleDocumentChanged() {
+      $timeout(function () {
+        $scope.isModified = true;
+        $scope.editor.broadcastIframeEvent({ name: 'documentChanged' });
+      });
+    }
+
+    $scope.$watch('joined', function (online) {
+        if (online === undefined) { return; }
+        if (online) {
+            $scope.editor.addIframeEventListener('actionSave', iframeActionSave);
+            $scope.operationRouter.subscribe('documentChanged', handleDocumentChanged);
+        } else {
+            $scope.editor.removeIframeEventListener('actionSave', iframeActionSave);
+            $scope.operationRouter.unsubscribe('documentChanged', handleDocumentChanged);
+        }
+    });
 });

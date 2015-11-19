@@ -13,6 +13,7 @@ angular.module('manticoreApp')
             EVENT_MEMBERADDED = 'memberAdded',
             EVENT_MEMBERCHANGED = 'memberChanged',
             EVENT_MEMBERREMOVED = 'memberRemoved',
+            EVENT_DOCUMENTCHANGED = 'documentChanged',
             eventNotifier = new core.EventNotifier([
                 EVENT_BEFORESAVETOFILE,
                 EVENT_SAVEDTOFILE,
@@ -21,6 +22,7 @@ angular.module('manticoreApp')
                 EVENT_MEMBERADDED,
                 EVENT_MEMBERCHANGED,
                 EVENT_MEMBERREMOVED,
+                EVENT_DOCUMENTCHANGED = 'documentChanged',
                 ops.OperationRouter.signalProcessingBatchStart,
                 ops.OperationRouter.signalProcessingBatchEnd
             ]),
@@ -36,7 +38,9 @@ angular.module('manticoreApp')
             unsyncedClientOpSpecQueue = [],
             operationTransformer = new ops.OperationTransformer(),
 
-            /**@const*/sendClientOpspecsDelay = 300;
+            /**@const*/sendClientOpspecsDelay = 300,
+
+            members = [];
 
 
         function playbackOpspecs(opspecs) {
@@ -54,6 +58,29 @@ angular.module('manticoreApp')
                         eventNotifier.emit(ops.OperationRouter.signalProcessingBatchEnd, {});
                         errorCb('opExecutionFailure');
                         return;
+                    } else {
+                        var spec = op.spec();
+                        if (spec.optype === 'AddMember') {
+                            var data = {
+                                memberId: spec.memberid,
+                                fullName: spec.setProperties.fullName,
+                                email: spec.setProperties.email,
+                                color: spec.setProperties.color
+                            };
+                            members.push(data);
+                            eventNotifier.emit(EVENT_MEMBERADDED, data);
+                        } else if (spec.optype === 'RemoveMember') {
+                            _.remove(members, function (member) {
+                                return member.memberId === spec.memberid;
+                            });
+                            eventNotifier.emit(EVENT_MEMBERREMOVED, {
+                                memberId: spec.memberid
+                            });
+                        }
+
+                        if (op.isEdit) {
+                          eventNotifier.emit(EVENT_DOCUMENTCHANGED);
+                        }
                     }
                 } else {
                     eventNotifier.emit(ops.OperationRouter.signalProcessingBatchEnd, {});
@@ -206,6 +233,10 @@ angular.module('manticoreApp')
             return hasSessionHostConnection;
         };
 
+        this.getMembers = function () {
+          return members;
+        };
+
         function init() {
             var replayed = false,
                 followupHead,
@@ -241,7 +272,8 @@ angular.module('manticoreApp')
         var self = this,
             memberId,
             genesisUrl,
-            socket;
+            socket,
+            router;
 
         this.getMemberId = function () {
             return memberId;
@@ -253,7 +285,12 @@ angular.module('manticoreApp')
 
         this.createOperationRouter = function (odfContainer, errorCb) {
             runtime.assert(Boolean(memberId), 'You must be connected to a session before creating an operation router');
-            return new OperationRouter(socket, odfContainer, errorCb);
+            router = new OperationRouter(socket, odfContainer, errorCb);
+            return router;
+        };
+
+        this.getOperationRouter = function () {
+            return router;
         };
 
         this.joinSession = function (cb) {
@@ -261,7 +298,7 @@ angular.module('manticoreApp')
                 socket.removeListener('join_success', handleJoinSuccess);
                 memberId = data.memberId;
                 genesisUrl = data.genesisUrl;
-                cb(memberId);
+                cb(memberId, data.permission);
             });
             socket.emit('join', {
                 documentId: documentId

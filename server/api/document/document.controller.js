@@ -32,7 +32,7 @@ exports.show = storage.show;
 exports.upload = storage.upload;
 
 exports.acknowledgeUpload = function (req, res) {
-    return res.send(200);
+    return res.send(201);
 };
 
 exports.showSnapshot = function(req, res) {
@@ -58,17 +58,38 @@ exports.createFromTemplate = storage.createFromTemplate;
 
 exports.createChunkFromSnapshot = storage.createChunkFromSnapshot;
 
-// Updates an existing document in the DB.
-exports.update = function(req, res) {
-  if(req.body._id) { delete req.body._id; }
+exports.overwrite = storage.overwrite || function (req, res) { return res.send(405); };
+
+exports.getAccess = function (req, res) {
   Document.findById(req.params.id, function (err, document) {
     if (err) { return handleError(res, err); }
     if(!document) { return res.send(404); }
-    var updated = _.merge(document, req.body);
-    updated.save(function (err) {
-      if (err) { return handleError(res, err); }
-      return res.json(200, document);
-    });
+    var objectCache = req.app.get('objectCache'),
+        access = (objectCache.isTracked(document) ?
+          objectCache.getTrackedObject(document).access : document.access);
+
+    return res.json(200, access);
+  });
+}
+
+// Updates an existing access list in the DB.
+exports.updateAccess = function(req, res) {
+  Document.findById(req.params.id, function (err, document) {
+    if (err) { return handleError(res, err); }
+    if(!document) { return res.send(404); }
+    var objectCache = req.app.get('objectCache');
+    if (objectCache.isTracked(document)) {
+      var trackedDoc = objectCache.getTrackedObject(document);
+      trackedDoc.access = req.body;
+      trackedDoc.markModified('access');
+      return res.send(200);
+    } else {
+      document.access = req.body;
+      document.save(function (err) {
+        if (err) { return handleError(res, err); }
+        return res.send(200);
+      });
+    }
   });
 };
 
