@@ -65,7 +65,7 @@ angular.module('manticoreApp')
       }
     }
 
-    function setupMemberAPI() {
+    function setupIframeAPI() {
       function handleMemberAdded(data) {
         $scope.editor.broadcastIframeEvent(_.merge({ name: 'memberAdded' }, data));
       }
@@ -84,6 +84,7 @@ angular.module('manticoreApp')
       $scope.$watch('joined', function (online) {
         if (online === undefined) { return; }
         if (online) {
+          // Members
           operationRouter.subscribe('memberAdded', handleMemberAdded);
           operationRouter.subscribe('memberRemoved', handleMemberRemoved);
           $scope.editor.addIframeEventListener('getMembers', getMembers);
@@ -134,7 +135,8 @@ angular.module('manticoreApp')
             editorInstance.addEventListener(Wodo.EVENT_UNKNOWNERROR, handleEditingError);
             editorInstance.joinSession(clientAdaptor, function () {
               operationRouter = clientAdaptor.getOperationRouter();
-              setupMemberAPI();
+              $scope.operationRouter = operationRouter;
+              setupIframeAPI();
 
                 $scope.$apply(function () {
                     $scope.joined = true;

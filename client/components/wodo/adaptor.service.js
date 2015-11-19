@@ -13,6 +13,7 @@ angular.module('manticoreApp')
             EVENT_MEMBERADDED = 'memberAdded',
             EVENT_MEMBERCHANGED = 'memberChanged',
             EVENT_MEMBERREMOVED = 'memberRemoved',
+            EVENT_DOCUMENTCHANGED = 'documentChanged',
             eventNotifier = new core.EventNotifier([
                 EVENT_BEFORESAVETOFILE,
                 EVENT_SAVEDTOFILE,
@@ -21,6 +22,7 @@ angular.module('manticoreApp')
                 EVENT_MEMBERADDED,
                 EVENT_MEMBERCHANGED,
                 EVENT_MEMBERREMOVED,
+                EVENT_DOCUMENTCHANGED = 'documentChanged',
                 ops.OperationRouter.signalProcessingBatchStart,
                 ops.OperationRouter.signalProcessingBatchEnd
             ]),
@@ -74,6 +76,10 @@ angular.module('manticoreApp')
                             eventNotifier.emit(EVENT_MEMBERREMOVED, {
                                 memberId: spec.memberid
                             });
+                        }
+
+                        if (op.isEdit) {
+                          eventNotifier.emit(EVENT_DOCUMENTCHANGED);
                         }
                     }
                 } else {
