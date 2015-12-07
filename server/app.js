@@ -22,6 +22,7 @@ var Adaptor = require('./components/adaptor');
 var ObjectCache = require('./components/objectcache');
 var app = express();
 app.set('objectCache', new ObjectCache());
+app.set('roomCache', {});
 
 var server = require('http').createServer(app);
 var socketio = require('socket.io')(server, {

@@ -142,3 +142,4 @@ The following events are available, suffixed with `Event`. They come with no `id
 3. `{name: "memberAdded", memberId: "user_234", fullName: "John Doe", color: "#ffee00", email: "john@doe.org"}`
 4. `{name: "memberRemoved", memberId: "user_234"}`
 5. `{name: "documentChanged" }` is useful for managing the state of a "save" button.
+6. `{name: "sessionClosed" }` is fired when the user is kicked due to the session being destroyed.

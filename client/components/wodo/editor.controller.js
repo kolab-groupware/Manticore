@@ -171,6 +171,7 @@ angular.module('manticoreApp')
             },
             function onKick() {
                 console.log('onKick');
+                $scope.editor.broadcastIframeEvent({ name: 'sessionClosed' });
                 closeEditing();
             },
             function onDisconnect() {

@@ -95,13 +95,24 @@ exports.updateAccess = function(req, res) {
 
 // Deletes a document from the DB.
 exports.destroy = function(req, res) {
-  Document.findById(req.params.id, function (err, document) {
-    if(err) { return handleError(res, err); }
-    if(!document) { return res.send(404); }
+  function remove (document) {
     document.remove(function(err) {
       if(err) { return handleError(res, err); }
       return res.send(204);
     });
+  }
+
+  Document.findById(req.params.id, function (err, document) {
+    if(err) { return handleError(res, err); }
+    if(!document) { return res.send(404); }
+    var room = req.app.get('roomCache')[document._id];
+    if (room) {
+      room.destroy(function () {
+        return remove(document);
+      })
+    } else {
+      return remove(document);
+    }
   });
 };
 

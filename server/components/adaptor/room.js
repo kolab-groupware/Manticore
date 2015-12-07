@@ -30,6 +30,8 @@ var DocumentController = require("../../api/document/document.controller");
 var Recorder = require('./recorder');
 
 var Room = function (app, document, objectCache, cb) {
+    var self = this;
+
     var ChunkManager = function (seedChunk) {
         var serverSeq,
             chunks = [];
@@ -455,6 +457,7 @@ var Room = function (app, document, objectCache, cb) {
             detachSocket(socket, cb);
         }, function () {
             //objectCache.forgetTrackedObject(chunk);
+            delete app.get('roomCache')[document._id];
             document.live = false;
             sockets.length = 0;
             recorder.destroy(callback);
@@ -462,16 +465,17 @@ var Room = function (app, document, objectCache, cb) {
     };
 
     function init() {
-        // Setup caching
-        DocumentChunk.findById(_.last(document.chunks), function (err, lastChunk) {
-            chunkManager = new ChunkManager(lastChunk);
-            // Sanitize leftovers from previous session, if any
-            sanitizeDocument();
-            recorder = new Recorder(chunkManager.getLastChunk(), function () {
-                isAvailable = true;
-                cb();
-            });
+      // Setup caching
+      DocumentChunk.findById(_.last(document.chunks), function (err, lastChunk) {
+        chunkManager = new ChunkManager(lastChunk);
+        // Sanitize leftovers from previous session, if any
+        sanitizeDocument();
+        recorder = new Recorder(chunkManager.getLastChunk(), function () {
+          isAvailable = true;
+          app.get('roomCache')[document._id] = self;
+          cb();
         });
+      });
     }
 
     init();
