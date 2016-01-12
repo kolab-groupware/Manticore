@@ -4,8 +4,13 @@
 
 'use strict';
 
+var _ = require('lodash');
+
 // Set default node environment to development
 process.env.NODE_ENV = process.env.NODE_ENV || 'development';
+if (process.env.NODE_ENV === 'production') {
+  _.merge(process.env, require('./config/local.env'));
+}
 
 var express = require('express');
 var mongoose = require('mongoose');
