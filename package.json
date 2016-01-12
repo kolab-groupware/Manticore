@@ -29,8 +29,7 @@
     "phantom": "~0.7.2",
     "dav": "~1.7.6",
     "request": "~2.60.0",
-    "ldapjs": "mcavage/node-ldapjs",
-    "passport-ldapauth": "0.3.0"
+    "passport-ldapauth": "0.5.0"
   },
   "devDependencies": {
     "grunt": "~0.4.5",
