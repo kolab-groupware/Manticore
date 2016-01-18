@@ -181,24 +181,24 @@ exports.createChunkFromSnapshot = function (document, snapshot, cb) {
                 user,
                 document._id,
                 gfs.createReadStream({ _id: fileId }),
-                true,
-            function (err, response) {
-                if (err) { return cb(err); }
-                var chunk = new DocumentChunk({
-                    _id: chunkId,
-                    sequence: snapshot.sequence,
-                    snapshot: {
-                        fileId: fileId,
-                        operations: snapshot.operations
-                    }
-                });
-                chunk.save(function (err) {
+                function (err, response) {
                     if (err) { return cb(err); }
-                    document.chunks.push(chunkId);
-                    document.markModified('chunks');
-                    cb(null, chunk);
-                });
-            });
+                    var chunk = new DocumentChunk({
+                        _id: chunkId,
+                        sequence: snapshot.sequence,
+                        snapshot: {
+                            fileId: fileId,
+                            operations: snapshot.operations
+                        }
+                    });
+                    chunk.save(function (err) {
+                        if (err) { return cb(err); }
+                        document.chunks.push(chunkId);
+                        document.markModified('chunks');
+                        cb(null, chunk);
+                    });
+                }
+            );
         });
     });
 };
