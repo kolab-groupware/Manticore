@@ -15,6 +15,7 @@ fi
 npm install
 npm install bower
 node_modules/bower/bin/bower install
+npm dedupe
 
 mkdir -p ../manticore-${version}/
 rm -rf ../manticore-${version}/*
