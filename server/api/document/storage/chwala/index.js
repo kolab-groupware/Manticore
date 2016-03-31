@@ -24,11 +24,18 @@ var gfs = Grid(mongoose.connection.db, mongoose.mongo);
 
 var serverUrl = config.storage.chwala.server;
 
+/**
+ * Uses the auth encryption key key to decipher ldap password
+ */
 function decrypt(password) {
     var decipher = crypto.createDecipher('aes-256-cbc', config.auth.ldap.key);
     return decipher.update(password, 'base64', 'utf8') + decipher.final('utf8');
 }
 
+/**
+ * Sends an authenticated request as a user (with their LDAP password), for a given
+ * Chwala ID (uuid), and downloads that to a given GridFS file Id.
+ */
 function downloadToGridFS(user, uuid, fileId, cb) {
     var file = gfs.createWriteStream({
         _id: fileId,
@@ -54,6 +61,11 @@ function downloadToGridFS(user, uuid, fileId, cb) {
     file.on('finish', cb);
 }
 
+/**
+ * Sends an authenticated PUT request to Chwala to upload a file to a given Chwala ID.
+ * The file is read from readStream.
+ */
+
 function uploadToServer(user, uuid, readStream, cb) {
     readStream.pipe(request.put({
         url: serverUrl + '/' + uuid,
@@ -67,6 +79,9 @@ function uploadToServer(user, uuid, readStream, cb) {
     }, cb));
 }
 
+/**
+ * Creates the first chunk for a Document by retrieving the ODT from Chwala into GridFS.
+ */
 function createFirstChunk(user, uuid, cb) {
     var chunkId = new mongoose.Types.ObjectId(),
         fileId = new mongoose.Types.ObjectId();
@@ -86,6 +101,9 @@ function createFirstChunk(user, uuid, cb) {
     });
 }
 
+/**
+ * Lists the available documents that have the user as either the creator or an editor
+ */
 exports.index = function (req, res) {
     var userId = req.user._id;
 
@@ -103,6 +121,10 @@ exports.index = function (req, res) {
     });
 };
 
+/**
+ * Return the metadata of a Document with a given ID,
+ * with the creators and editors' names/emails populated
+ */
 exports.show = function(req, res) {
   Document.findById(req.params.id)
   .populate('creator', 'name email')
@@ -114,10 +136,19 @@ exports.show = function(req, res) {
   });
 };
 
+/**
+ * Creating a document from a template is not supported by the Chwala adapter,
+ * as this is something handled on the Roundcube/Chwala side.
+ */
 exports.createFromTemplate = function (req, res) {
   return res.send(405);
 };
 
+/**
+ * Handles an incoming POST request from Chwala to create a new document with
+ * a given Chwala ID, title, and access list. If no such document exists already,
+ * a first chunk for it is created by retrieving the ODT file from Chwala.
+ */
 exports.upload = function (req, res, next) {
   var id = req.body.id,
       title = req.body.title,
@@ -143,6 +174,12 @@ exports.upload = function (req, res, next) {
   });
 };
 
+/**
+ * When a PUT request comes with a given Chwala ID, it means the intention is to
+ * override the Manticore copy with a completely new version of the document, because
+ * it was perhaps modified by other means unkown to Manticore. So a new first chunk is
+ * created and we stop tracking the old chunks.
+ */
 exports.overwrite = function (req, res) {
   Document.findById(req.params.id, function (err, document) {
     if (err) { return handleError(res, err); }
@@ -161,6 +198,11 @@ exports.overwrite = function (req, res) {
   });
 }
 
+/**
+ * Creates a new chunk from an in-memory document snapshot (most likely the current one),
+ * writes it to GridFS, streams it back to Chwala via a PUT request, and once that succeeds,
+ * creates a new chunk to track the file and appends it to the DB entry. 
+ */
 exports.createChunkFromSnapshot = function (document, snapshot, cb) {
     var chunkId = new mongoose.Types.ObjectId(),
         fileId = new mongoose.Types.ObjectId();

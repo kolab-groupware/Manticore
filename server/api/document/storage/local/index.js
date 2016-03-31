@@ -10,6 +10,9 @@ var Template = require('../../../template/template.model');
 
 var gfs = Grid(mongoose.connection.db, mongoose.mongo);
 
+/**
+ * Lists the available documents that have the user as either the creator or an editor
+ */
 exports.index = function (req, res) {
     var userId = req.user._id;
 
@@ -24,6 +27,9 @@ exports.index = function (req, res) {
     });
 };
 
+/**
+ * Returns the document metadata for a given ID
+ */
 exports.show = function(req, res) {
     Document.findById(req.params.id, function (err, document) {
         if(err) { return handleError(res, err); }
@@ -32,6 +38,10 @@ exports.show = function(req, res) {
     });
 };
 
+/**
+ * Handles a multipart upload of one or more files, streams them into GridFS,
+ * creates chunks to track them, and creates Documents with the filenames as titles.
+ */
 exports.upload = function (req, res, next) {
     multer({
         upload: null,
@@ -79,7 +89,10 @@ exports.upload = function (req, res, next) {
     })(req, res, next);
 };
 
-
+/**
+ * Creates a first-chunk whose snapshot data points to a template's GridFS ID,
+ * for a new Document with the same title as the template.
+ */
 exports.createFromTemplate = function (req, res) {
   Template.findById(req.params.id, function (err, template) {
       if (err) { return handleError(res, err); }
@@ -109,6 +122,10 @@ exports.createFromTemplate = function (req, res) {
   });
 };
 
+/**
+ * Takes an in-memory snapshot of the document and streams the ODT into GridFS.
+ * Creates a chunk to represent the new file and appends it to the DB entry.
+ */
 exports.createChunkFromSnapshot = function (document, snapshot, cb) {
     var chunkId = new mongoose.Types.ObjectId(),
         fileId = new mongoose.Types.ObjectId();

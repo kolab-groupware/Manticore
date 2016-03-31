@@ -26,11 +26,18 @@ var gfs = Grid(mongoose.connection.db, mongoose.mongo);
 var serverUrl = config.storage.webdav.server,
     serverPath = config.storage.webdav.path;
 
+/**
+ * Uses the auth encryption key key to decipher webdav password
+ */
 function decrypt(password) {
     var decipher = crypto.createDecipher('aes-256-cbc', config.storage.webdav.key);
     return decipher.update(password, 'base64', 'utf8') + decipher.final('utf8');
 }
 
+/**
+ * Creates a new dav "client" which will use the users's credentials
+ * as authentication headers to talk to the WebDAV server.
+ */
 function makeDavClient (user) {
     return new dav.Client(
         new dav.transport.Basic(new dav.Credentials({
@@ -43,6 +50,11 @@ function makeDavClient (user) {
     );
 }
 
+/**
+ * GETs the file with the relevant href from the WebDAV server,
+ * authenticated as the user, and streams the retrieved file into GridFS,
+ * addresed by the specified fileId
+ */
 function saveToGridFS(user, href, fileId, cb) {
     var file = gfs.createWriteStream({
         _id: fileId,
@@ -53,6 +65,8 @@ function saveToGridFS(user, href, fileId, cb) {
         root: 'fs'
     });
 
+    // The dav library's API seems insufficient to retrieve files in this manner,
+    // so we just use the `request` API.
     request.get({
         url: serverUrl + href,
         auth: {
@@ -68,6 +82,11 @@ function saveToGridFS(user, href, fileId, cb) {
     file.on('finish', cb);
 }
 
+/**
+ * The only way we have of making sure that a file is the same one we're referring to,
+ * both content-wise, is to take both the etag and last-modified metadata
+ * into account. We refer to this as a `contentId`.
+ */
 function makeContentId(webdavDoc) {
     return webdavDoc.props.getetag + webdavDoc.props.getlastmodified;
 }
@@ -153,6 +172,10 @@ function synchronizeUserFilesToDB(user, webdavDocuments, objectCache, cb) {
     });
 }
 
+/**
+ * Return a de-duplicated flat list of files available on the WebDAV server
+ * and Documents that are available locally
+ */
 exports.index = function (req, res) {
     var davClient = makeDavClient(req.user);
 
@@ -205,6 +228,10 @@ exports.index = function (req, res) {
     });
 };
 
+/**
+ * Creates the first chunk for a Document by retrieving it from the WebDAV server
+ * and saving into GridFS.
+ */
 function createFirstChunk(user, href, cb) {
     var chunkId = new mongoose.Types.ObjectId(),
         fileId = new mongoose.Types.ObjectId();
@@ -224,6 +251,15 @@ function createFirstChunk(user, href, cb) {
     });
 }
 
+/**
+ * When a document is requested by and ID:
+ * 1. If the ID exists in the DB, return that.
+ *   - If the ID does exist, but has no chunks, it had been invalidated. So, create a first-chunk.
+ * 2. If the ID parameter is a combination of `href` and `contentId`, return a
+ *    document with the same `webdav.contentId` value in the DB.
+ *   - If such a document is not found, retrieve the document metadata from the WebDAV
+ *     server, create an entry for it in the DB, and then return it.
+ */
 exports.show = function(req, res) {
     if (mongoose.Types.ObjectId.isValid(req.params.id)) {
         Document.findById(req.params.id, function (err, document) {
@@ -281,6 +317,10 @@ exports.show = function(req, res) {
     }
 };
 
+/**
+ * Authenticated as a user, upload a document to the WebDAV server, with
+ * an option to replace/overwrite it.
+ */
 function uploadToServer(user, readStream, href, replace, cb) {
     var nonConflictingPath;
 
@@ -301,6 +341,7 @@ function uploadToServer(user, readStream, href, replace, cb) {
         nonConflictingPath = serverUrl + href;
         upload();
     } else {
+       // Check for the existence of a conflicting path
         makeDavClient(user).send(dav.request.propfind({
             depth: 1,
             props: [
@@ -323,6 +364,8 @@ function uploadToServer(user, readStream, href, replace, cb) {
                 return item;
             }).value();
 
+            // Generate a new href for storage of the file, so that it does not
+            // conflict with an existing file.
             var iteration = 0,
                 extension = path.extname(href),
                 basename = path.basename(href, extension),
@@ -346,6 +389,10 @@ function uploadToServer(user, readStream, href, replace, cb) {
     }
 }
 
+/**
+ * Handle multipart file uploads done through the Manticore UI. These files are
+ * immediately uploaded to the WebDAV server's `serverPath` directory.
+ */
 exports.upload = function (req, res, next) {
     multer({
         upload: null,
@@ -366,6 +413,10 @@ exports.upload = function (req, res, next) {
     })(req, res, next);
 };
 
+/**
+ * Create a new Document from a registered template, and upload it to the WebDAV
+ * server, without replacing/overwriting any file of the same name.
+ */
 exports.createFromTemplate = function (req, res) {
   Template.findById(req.params.id, function (err, template) {
       if (err) { return handleError(res, err); }
@@ -410,6 +461,11 @@ exports.createFromTemplate = function (req, res) {
   });
 };
 
+/**
+ * Take an ODT snapshot, write it to GridFS, and upload it to the WebDAV server,
+ * overwriting any exisiting file at the same href. Creates a new chunk.
+ * This is intended to be used when the 'save' action is invoked.
+ */
 exports.createChunkFromSnapshot = function (document, snapshot, cb) {
     var chunkId = new mongoose.Types.ObjectId(),
         fileId = new mongoose.Types.ObjectId();

@@ -24,6 +24,9 @@ var Recorder = function (lastChunk, cb) {
         }
     }
 
+    /**
+     * The following block is meant to run in the Phantom webpage context
+     */
     /* jshint ignore:start */
     function loadDocument(url, sequence, operations) {
         window.console.log = function (message) {

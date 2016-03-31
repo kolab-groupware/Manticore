@@ -29,13 +29,25 @@ var DocumentController = require("../../api/document/document.controller");
 
 var Recorder = require('./recorder');
 
+/**
+ * Handles the adding/removal of members in an editing session, relays operations,
+ * performs cleanup after dropouts, and talks to the client with socketio messages
+ */
 var Room = function (app, document, objectCache, cb) {
     var self = this;
 
+    /**
+     * Handles chunking of operations to a document - including retrieval
+     * and appending of new ops across several chunks
+     */
     var ChunkManager = function (seedChunk) {
         var serverSeq,
             chunks = [];
 
+        /**
+         * Starts at `seq` sequence number and returns an array of all operations
+         * after that, spanning one or more chunks
+         */
         function getOperationsAfter(seq) {
             var ops = [];
 
@@ -88,6 +100,10 @@ var Room = function (app, document, objectCache, cb) {
         saveInProgress = false,
         isAvailable = false;
 
+    /**
+     * Synchronizes the title of the Document in the DB and any changes to the ODF
+     * metadata title
+     */
     function trackTitle(ops) {
         var newTitle, i;
 
@@ -108,6 +124,10 @@ var Room = function (app, document, objectCache, cb) {
         }
     }
 
+    /**
+     * Synchronizes the list of people who have joined the session to The
+     * `editors` field of the Document entry in the DB
+     */
     function trackEditors() {
         // TODO: rather track by ops, to decouple from socket implementation
         sockets.forEach(function (socket) {
@@ -118,6 +138,10 @@ var Room = function (app, document, objectCache, cb) {
         });
     }
 
+    /**
+     * Inspects the array of operations and updates the hasCursor fields for each
+     * user
+     */
     function trackCursors(ops) {
         var i;
 
@@ -131,7 +155,13 @@ var Room = function (app, document, objectCache, cb) {
         }
     }
 
-    // Removes all cursors and members in the correct order within the last chunk
+    /**
+     * Removes all cursors and members in the correct order within the last chunk
+     * It may have happen that a user drops out due to a connection loss, error, or
+     * if Manticore is uncleanly terminated.
+     * In that case, this function will make sure to remove their cursors from the
+     * document and then remove the "member" via the relevant operations.
+     */
     function sanitizeDocument() {
         var chunk = chunkManager.getLastChunk(),
             ops = chunk.snapshot.operations.concat(chunk.operations),
@@ -179,12 +209,18 @@ var Room = function (app, document, objectCache, cb) {
         }
     }
 
+    /**
+     * Broadcast a socketio message to all clients
+     */
     function broadcastMessage(message, data) {
         sockets.forEach(function (peerSocket) {
             peerSocket.emit(message, data)
         });
     }
 
+    /**
+     * Send an array of operations to a given member, referred to by it's socket
+     */
     function sendOpsToMember(socket, ops) {
         socket.emit("new_ops", {
             head: chunkManager.getServerSequence(),
@@ -192,6 +228,10 @@ var Room = function (app, document, objectCache, cb) {
         });
     }
 
+    /**
+     * Sends an array of operations to a given member, which are necessary to
+     * bring the snapshot provided to them to the latest state of the document
+     */
     function setupMemberSnapshot(socket, snapshot) {
         socket.emit("replay", {
             head: chunkManager.getServerSequence(),
@@ -199,6 +239,9 @@ var Room = function (app, document, objectCache, cb) {
         });
     }
 
+    /**
+     * Send ops authored by a given member to all other members except that one
+     */
     function broadcastOpsByMember(socket, ops) {
         if (!ops.length) {
             return;
@@ -210,6 +253,11 @@ var Room = function (app, document, objectCache, cb) {
         });
     }
 
+    /**
+     * Takes the array of incoming ops, plays them on the serverside live document,
+     * and if the execution succeeds without errors, adds them to the document's latest chunk,
+     * while making sure to update the relevant Document metadata based on the ops content
+     */
     function writeOpsToDocument(ops, cb) {
         if (!ops.length || !document.live) {
             cb();
@@ -229,6 +277,13 @@ var Room = function (app, document, objectCache, cb) {
         });
     }
 
+    /**
+     * Assigns a unique WebODF memberId to a new user, and adds them to the document.
+     * This lets the same user join the same session several times, for example through
+     * different devices.
+     * A random color is assigned to the member, and we try to make the color
+     * sufficiently distinguishable from all the other colors present in the session
+     */
     function addMember(user, cb) {
         var memberId,
             op,
@@ -257,6 +312,10 @@ var Room = function (app, document, objectCache, cb) {
         });
     }
 
+    /**
+     * Removes a user instance from the sessions, by first issuing an op
+     * to remove their cursor, and then their member.
+     */
     function removeMember(memberId, cb) {
         var ops = [],
             timestamp = Date.now();
@@ -282,6 +341,12 @@ var Room = function (app, document, objectCache, cb) {
         return sockets.length;
     };
 
+    /**
+     * Runs everything that's required bring a new socket up to speed on the
+     * latest state of the document, byt adding their member to the session,
+     * then extracting the latest snapshot from the PhantomJS recorder,
+     * and serving that snapshot out as the editor's Genesis URL.
+     */
     this.attachSocket = function (socket) {
         // Add the socket to the room and give the
         // client it's unique memberId
@@ -314,6 +379,11 @@ var Room = function (app, document, objectCache, cb) {
                     }
                 });
 
+                /**
+                 * Inform the client that the socket has joined the session and
+                 * with the returned permission type, so they have enough info
+                 * on how to initialize the editor
+                 */
                 socket.emit("join_success", {
                     memberId: memberId,
                     genesisUrl: genesisUrl,
@@ -434,6 +504,10 @@ var Room = function (app, document, objectCache, cb) {
         });
     }
 
+    /**
+     * Detach a connected socket and then remove it from the list of known sockets,
+     * so a reconnect is never attempted again
+     */
     function removeSocket(socket) {
         var index = sockets.indexOf(socket);
 

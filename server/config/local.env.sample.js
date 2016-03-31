@@ -21,7 +21,7 @@ module.exports = {
    * If completely outsourcing access control to a third party service (like Kolab), set it to 'deny'.
    * If left blank, defaults to 'deny'.
    */
-  DEFAULT_ACCESS: 'allow',
+  DEFAULT_ACCESS: 'write',
 
   /*
    * Supported authentication strategies.
